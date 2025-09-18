@@ -1,0 +1,43 @@
+# Android/Gradle
+.gradle/
+build/
+*.apk
+*.aar
+
+# Local configuration (no debe subirse)
+local.properties
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Keystore files (¡NUNCA deben subirse!)
+*.jks
+*.keystore
+
+# Google Services (Firebase, Maps, etc.) — opcional según equipo
+google-services.json
+
+# Android Studio Navigation editor
+.navigation/
+
+# Captures (grabaciones de layout inspector, etc.)
+captures/
+
+# Crashlytics/Fabric
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# NDK
+obj/
+.externalNativeBuild/
+.cxx/
+
+# macOS
+.DS_Store
+
+# Otros archivos temporales o generados
+*.log
