@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SMARTMEALSProyecto">
         <activity
+            android:name=".VistaPerfil"
+            android:exported="false" />
+        <activity
             android:name=".PantallaPrincipal"
             android:exported="false" />
         <activity
