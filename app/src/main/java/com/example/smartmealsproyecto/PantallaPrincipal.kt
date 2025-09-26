@@ -8,6 +8,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import com.example.smartmealsproyecto.databinding.ActivityMainBinding
 import com.example.smartmealsproyecto.databinding.ActivityPantallaPrincipalBinding
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class PantallaPrincipal : AppCompatActivity() {
     lateinit var binding: ActivityPantallaPrincipalBinding
@@ -16,6 +19,8 @@ class PantallaPrincipal : AppCompatActivity() {
 
         binding = ActivityPantallaPrincipalBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
+        val navController = findNavController(R.id.nav_host_fragment)
         fragmentos(Home())
         binding.bottomNavigation.setOnItemSelectedListener{
             when(it.itemId){
