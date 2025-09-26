@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -10,11 +10,24 @@
     android:orientation="vertical"
     android:background="@drawable/fondomenu">
 <FrameLayout
+    android:id="@+id/frame_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent"
+    app:layout_constraintLeft_toLeftOf="parent"
+
+    app:layout_constraintBottom_toTopOf="@+id/bottom_navigation"
+    app:layout_constraintTop_toTopOf="parent">
+</FrameLayout>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
-</LinearLayout>
+        android:layout_height="90dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:menu="@menu/menu_principal"
+        app:itemIconSize="24dp"
+        app:itemActiveIndicatorStyle="@null"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

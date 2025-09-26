@@ -5,10 +5,33 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import com.example.smartmealsproyecto.databinding.ActivityMainBinding
+import com.example.smartmealsproyecto.databinding.ActivityPantallaPrincipalBinding
 
 class PantallaPrincipal : AppCompatActivity() {
+    lateinit var binding: ActivityPantallaPrincipalBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        binding = ActivityPantallaPrincipalBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        fragmentos(Home())
+        binding.bottomNavigation.setOnItemSelectedListener{
+            when(it.itemId){
+                R.id.homeFragment->fragmentos(Home())
+                R.id.saveFragment->fragmentos(Recetas())
+                R.id.makeFragment->fragmentos(Calendario())
+                R.id.InvFragment->fragmentos(Inventario())
+                R.id.profileFragment->fragmentos(Perfil())
+            }
+            true
+        }
         setContentView(R.layout.activity_pantalla_principal)
+    }
+    fun fragmentos(fragment: Fragment){
+        var fragment_manager=supportFragmentManager
+        var transaction=fragment_manager.beginTransaction()
+        transaction.replace(R.id.frame_layout, fragment).commit()
     }
 }
