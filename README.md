@@ -6,3 +6,6 @@
 ### _Miércoles 24 de septiembre de 2025_: 
 - Inicio de diseño menu principal (F)
 - Inicio de diseño de vista Perfil (H)
+
+### _Jueves 25 de septiembre de 2025_:
+- Creacion del menu principal (H)
