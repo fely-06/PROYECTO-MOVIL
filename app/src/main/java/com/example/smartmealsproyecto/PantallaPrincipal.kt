@@ -19,9 +19,7 @@ class PantallaPrincipal : AppCompatActivity() {
         setContentView(R.layout.activity_pantalla_principal)
         binding = ActivityPantallaPrincipalBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        val navController = findNavController(R.id.nav_host_fragment)
-        fragmentos(Home())
+
         binding.bottomNavigation.setOnItemSelectedListener{
             when(it.itemId){
                 R.id.homeFragment->fragmentos(Home())
