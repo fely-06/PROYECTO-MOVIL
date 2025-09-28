@@ -13,7 +13,7 @@ class PantallaPrincipal : AppCompatActivity() {
     lateinit var binding: ActivityPantallaPrincipalBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        setContentView(R.layout.activity_pantalla_principal)
         binding = ActivityPantallaPrincipalBinding.inflate(layoutInflater)
         setContentView(binding.root)
         fragmentos(Home())
@@ -27,7 +27,7 @@ class PantallaPrincipal : AppCompatActivity() {
             }
             true
         }
-        setContentView(R.layout.activity_pantalla_principal)
+
     }
     fun fragmentos(fragment: Fragment){
         var fragment_manager=supportFragmentManager

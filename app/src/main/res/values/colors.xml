@@ -4,4 +4,6 @@
     <color name="white">#FFFFFFFF</color>
     <color name="amarillo">#FFDE59</color>
     <color name="Gris">#605a5a</color>
+    <color name="NaranjaFuerte">#fe6c22</color>
+    <color name="AmarilloClaro">#fffac6</color>
 </resources>

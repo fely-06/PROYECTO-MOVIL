@@ -6,7 +6,6 @@
         android:title=""
         android:id="@+id/homeFragment"
         android:icon="@drawable/casa"
-
         />
     <item
         android:id="@+id/saveFragment"
