@@ -12,3 +12,6 @@
 
 ### _Sabado 27 de Septiembre de 2025_: 
 - Se termino el menu principal (H)
+
+### _Lunes 29 de Septiembre de 2025_:
+- Se termino de diseñar la vista perfil (H)

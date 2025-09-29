@@ -62,7 +62,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="330dp"
+        android:layout_marginTop="340dp"
         android:fontFamily="@font/ms"
         android:text="NOMBRE DE USUARIO"
         android:textAlignment="center"
@@ -73,16 +73,17 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="355dp"
+        android:layout_marginTop="365dp"
         android:layout_marginLeft="60dp">
 
         <EditText
             android:layout_width="250dp"
             android:layout_height="50dp"
-            android:background="@color/white"
-            android:shadowRadius="@integer/material_motion_duration_medium_1"
+            android:background="@drawable/editext_redondeado"
             android:hint="Usuario"
             android:fontFamily="@font/ms"
+            android:textAlignment="center"
+
             />
         <ImageButton
             android:layout_width="50dp"
@@ -100,7 +101,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="420dp"
+        android:layout_marginTop="430dp"
         android:fontFamily="@font/ms"
         android:text="CONTRASEÑA"
         android:textAlignment="center"
@@ -111,15 +112,15 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="445dp"
+        android:layout_marginTop="455dp"
         android:layout_marginLeft="60dp">
 
         <EditText
             android:layout_width="250dp"
             android:layout_height="50dp"
-            android:background="@color/white"
-            android:shadowRadius="@integer/material_motion_duration_medium_1"
+            android:background="@drawable/editext_redondeado"
             android:hint="Contraseña"
+            android:textAlignment="center"
             android:fontFamily="@font/ms"
             />
         <ImageButton
@@ -141,7 +142,7 @@
         android:textColor="@color/white"
         android:text="Permitir Notificaciones"
         android:buttonTint="@color/amarillo"
-        android:layout_marginTop="490dp"
+        android:layout_marginTop="500dp"
         android:layout_marginLeft="60dp"
         android:fontFamily="@font/ms"
         />

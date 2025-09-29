@@ -28,7 +28,6 @@ class MainActivity : AppCompatActivity() {
         val BotonLogin = findViewById<Button>(R.id.BotonLogin)
 
         BotonLogin.setOnClickListener {
-            // Abre la nueva Activity
             val intent = Intent(this, PantallaPrincipal::class.java)
             startActivity(intent)
         }

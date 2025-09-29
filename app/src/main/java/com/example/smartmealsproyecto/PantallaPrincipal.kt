@@ -19,7 +19,7 @@ class PantallaPrincipal : AppCompatActivity() {
         setContentView(R.layout.activity_pantalla_principal)
         binding = ActivityPantallaPrincipalBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        fragmentos(Home())
         binding.bottomNavigation.setOnItemSelectedListener{
             when(it.itemId){
                 R.id.homeFragment->fragmentos(Home())
