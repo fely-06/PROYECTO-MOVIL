@@ -12,16 +12,16 @@
         android:id="@+id/encabezado"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/amarillo">
+        android:background="@color/AmarilloClaro">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="MI PERFIL    "
+            android:text="MI PERFIL"
             android:textSize="35sp"
             android:fontFamily="@font/ms"
-            android:gravity="right"
-            android:textColor="@color/white"
+            android:gravity="center"
+            android:textColor="@color/NaranjaFuerte"
             />
     </LinearLayout>
 
