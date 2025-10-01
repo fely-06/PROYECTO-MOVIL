@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/AmarilloClaro"
+        android:gravity="center_vertical">
+
+        <!-- Imagen circular del platillo -->
+        <ImageView
+            android:id="@+id/imageViewPlatillo"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_launcher_background"
+            android:scaleType="centerCrop"
+            android:contentDescription="Imagen del platillo" />
+
+        <!-- Contenedor de texto -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <!-- Nombre del platillo -->
+            <TextView
+                android:id="@+id/textViewNombrePlatillo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre Platillo..."
+                android:textColor="@color/NaranjaFuerte"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/ms" />
+
+            <!-- Tiempo de preparación -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="4dp">
+
+                <ImageView
+                    android:id="@+id/imageViewReloj"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/clock"
+                    android:contentDescription="Reloj"
+                    app:tint="@color/NaranjaFuerte" />
+
+                <TextView
+                    android:id="@+id/textViewTiempoPreparacion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tiempo de preparación: 30 min"
+                    android:textColor="@color/NaranjaFuerte"
+                    android:textSize="14sp"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
+

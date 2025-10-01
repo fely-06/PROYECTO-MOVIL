@@ -1,59 +1,117 @@
 package com.example.smartmealsproyecto
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [Recetas.newInstance] factory method to
- * create an instance of this fragment.
- */
 class Recetas : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private var _binding: FragmentRecetasBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: RecetasAdapt
+    private var recetasList = mutableListOf<Receta>()
+    private var recetasListOriginal = mutableListOf<Receta>()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentRecetasBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupRecyclerView()
+        setupData()
+        setupSearch()
+        setupSortButtons()
+        setupFab()
+    }
+
+    private fun setupRecyclerView() {
+        recyclerView = binding.rec
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        adapter = RecetasAdapt(recetasList)
+        recyclerView.adapter = adapter
+    }
+
+    private fun setupData() {
+        recetasList.apply {
+            add(Receta("Ensalada César", 15))
+            add(Receta("Pollo a la Brasa", 45))
+            add(Receta("Pasta Carbonara", 30))
+            add(Receta("Hamburguesa Casera", 25))
+            add(Receta("Sopa de Pollo", 20))
+            add(Receta("Tacos al Pastor", 35))
+            add(Receta("Pizza Margarita", 40))
+            add(Receta("Arroz con Pollo", 50))
+        }
+        recetasListOriginal.addAll(recetasList)
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun setupSearch() {
+        binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = binding.editTextSearch.text.toString().trim()
+                filterRecetas(query)
+                true
+            } else {
+                false
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_recetas, container, false)
+    private fun setupSortButtons() {
+        // Ordenar A-Z
+        binding.iconSortAZ.setOnClickListener {
+            recetasList.sortBy { it.nombre }
+            adapter = RecetasAdapt(recetasList)
+            recyclerView.adapter = adapter
+            Toast.makeText(requireContext(), "Ordenado A-Z", Toast.LENGTH_SHORT).show()
+        }
+
+        // Ordenar Z-A
+        binding.iconSortZA.setOnClickListener {
+            recetasList.sortByDescending { it.nombre }
+            adapter = RecetasAdapt(recetasList)
+            recyclerView.adapter = adapter
+            Toast.makeText(requireContext(), "Ordenado Z-A", Toast.LENGTH_SHORT).show()
+        }
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Recetas.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            Recetas().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    private fun filterRecetas(query: String) {
+        val filtered = if (query.isEmpty()) {
+            recetasListOriginal
+        } else {
+            recetasListOriginal.filter { it.nombre.contains(query, ignoreCase = true) }
+        }
+        recetasList.clear()
+        recetasList.addAll(filtered)
+        adapter = RecetasAdapt(recetasList)
+        recyclerView.adapter = adapter
+    }
+
+    private fun setupFab() {
+        binding.fabAdd.setOnClickListener {
+            Toast.makeText(requireContext(), "Agregar nueva receta", Toast.LENGTH_SHORT).show()
+            // Aquí puedes abrir un diálogo o navegar a otra pantalla
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

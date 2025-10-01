@@ -7,35 +7,128 @@
     android:background="@drawable/img_1"
     tools:context=".Recetas">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!-- Encabezado -->
     <LinearLayout
         android:id="@+id/encabezado"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/AmarilloClaro">
+        android:background="@color/AmarilloClaro"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:importantForAccessibility="no">
+
+
+
+        <!-- Título -->
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:fontFamily="@font/ms"
             android:gravity="center"
             android:text="MIS RECETAS"
             android:textColor="@color/NaranjaFuerte"
-            android:textSize="35sp" />
+            android:textSize="28sp"
+            android:textStyle="bold"
+            tools:ignore="HardcodedText" />
+
+        <!-- Espacio para balance visual -->
+        <View
+            android:layout_width="32dp"
+            android:layout_height="32dp" />
     </LinearLayout>
 
-
-    <EditText
-        android:layout_width="320dp"
+    <!-- Campo de búsqueda con ícono de lupa -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
-        android:background="@drawable/editext_redondeado"
-        android:drawablePadding="15dp"
-        android:layout_gravity="center_horizontal"
-        android:hint="Buscar Receta..."
-        android:imeOptions="actionNext"
-        android:padding="10dp"
-        android:singleLine="true"
-        android:textColor="@color/black"
-        android:textColorHint="@color/white" />
+        android:layout_marginTop="70dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
+
+        <!-- Barra de búsqueda -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/editext_redondeado"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <EditText
+                android:id="@+id/editTextSearch"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:hint="Buscar receta..."
+                android:inputType="text"
+                android:autofillHints="search"
+                android:imeOptions="actionSearch"
+                android:textColor="@color/black"
+                android:textColorHint="@color/white"
+                android:textSize="16sp"
+                tools:ignore="HardcodedText" />
+
+            <ImageView
+                android:id="@+id/iconSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/lupa"
+                android:contentDescription="Buscar" />
+        </LinearLayout>
+
+        <!-- Iconos de ordenamiento -->
+        <ImageView
+            android:id="@+id/iconSortAZ"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:padding="8dp"
+            android:src="@drawable/az"
+            android:contentDescription="Ordenar A-Z"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/iconSortZA"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:padding="8dp"
+            android:src="@drawable/za"
+            android:rotation="180"
+            android:contentDescription="Ordenar Z-A"
+            app:tint="@color/white" />
+    </LinearLayout>
+
+    <!-- RecyclerView para mostrar las recetas -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rec"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="130dp"
+        android:layout_marginBottom="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:clipToPadding="false" />
+
+    <!-- Botón flotante para agregar recetas -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="24dp"
+        android:src="@android:drawable/ic_input_add"
+        android:contentDescription="Agregar receta"
+        app:tint="@color/white"
+        app:backgroundTint="@color/NaranjaFuerte"
+        app:fabSize="normal"
+        tools:ignore="HardcodedText" />
 
 </FrameLayout>
