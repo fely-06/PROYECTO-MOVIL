@@ -1,30 +1,26 @@
 package com.example.smartmealsproyecto
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageButton
+import android.widget.Toast
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
-
-
 
 class Inventario : Fragment() {
 
-    private var _binding: ActivityMainBinding? = null
-    // Este es solo un ejemplo. Si NO usas ViewBinding, usa findViewById como abajo.
-
-    // Alternativa SIN ViewBinding (más simple para empezar):
     private lateinit var recyclerView: RecyclerView
-    private lateinit var fab: FloatingActionButton
+    private lateinit var fab: ImageButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Infla el layout del fragmento
         return inflater.inflate(R.layout.fragment_inventario, container, false)
     }
 
@@ -33,10 +29,11 @@ class Inventario : Fragment() {
 
         // Inicializa vistas
         recyclerView = view.findViewById(R.id.recyclerViewProductos)
-        fab = view.findViewById(R.id.fab)
+        fab = view.findViewById(R.id.fabAddProducto)
 
         // Configura RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         val productos = listOf(
             Producto("Manzana", 10),
             Producto("Banana", 5),
@@ -44,7 +41,8 @@ class Inventario : Fragment() {
             Producto("Fresa", 12),
             Producto("Kiwi", 3)
         )
-        recyclerView.adapter = ProductoAdapter(productos)
+
+        recyclerView.adapter = ProductoAdap(productos)
 
         // Configura FAB
         fab.setOnClickListener {
@@ -73,7 +71,5 @@ class Inventario : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // Si usas ViewBinding:
-        // _binding = null
     }
 }
