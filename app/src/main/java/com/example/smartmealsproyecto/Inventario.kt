@@ -1,5 +1,6 @@
 package com.example.smartmealsproyecto
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
 
 class Inventario : Fragment() {
 
@@ -27,11 +29,9 @@ class Inventario : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Inicializa vistas
         recyclerView = view.findViewById(R.id.recyclerViewProductos)
         fab = view.findViewById(R.id.fabAddProducto)
 
-        // Configura RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         val productos = listOf(
@@ -44,7 +44,6 @@ class Inventario : Fragment() {
 
         recyclerView.adapter = ProductoAdap(productos)
 
-        // Configura FAB
         fab.setOnClickListener {
             showMenu(it)
         }
@@ -58,10 +57,13 @@ class Inventario : Fragment() {
         popup.setOnMenuItemClickListener { item ->
             when (item.title.toString()) {
                 "Escanear" -> {
-                    Toast.makeText(requireContext(), "Escaneando...", Toast.LENGTH_SHORT).show()
+
                 }
                 "Agregar Manualmente" -> {
-                    Toast.makeText(requireContext(), "Abriendo formulario...", Toast.LENGTH_SHORT).show()
+                    val nuevoFragment = Add_Product()
+                    requireActivity().supportFragmentManager.beginTransaction().replace(R.id.frame_layout, nuevoFragment).addToBackStack(null).commit()
+                    //val intent = Intent(PantallaPrincipal(), Recetas::class.java)
+                    //startActivity(intent)
                 }
             }
             true

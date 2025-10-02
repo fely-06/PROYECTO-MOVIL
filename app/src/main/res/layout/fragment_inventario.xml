@@ -35,35 +35,30 @@
         android:text="Mis Productos"
         android:textColor="@color/white"
         android:textSize="30sp"
-        android:layout_marginStart="60dp"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/encabezado" />
 
-    <!-- Línea decorativa -->
     <LinearLayout
         android:id="@+id/corte"
-        android:layout_width="290dp"
+        android:layout_width="365dp"
         android:layout_height="10dp"
         android:background="@color/amarillo"
         app:layout_constraintTop_toBottomOf="@+id/et1"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="60dp"
+        android:layout_marginStart="20dp"
         android:gravity="center"
         android:orientation="horizontal" />
-
-    <!-- ScrollView con RecyclerView dentro -->
     <ScrollView
         android:id="@+id/scroll"
-        android:layout_width="290dp"
-        android:layout_height="0dp"
+        android:layout_width="365dp"
+        android:layout_height="650dp"
         android:layout_marginTop="20dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/corte"
-        app:layout_constraintBottom_toTopOf="@+id/fabAddProducto"
         android:contentDescription="Explora Productos">
 
-        <!-- RecyclerView DENTRO del ScrollView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewProductos"
             android:layout_width="match_parent"
@@ -71,20 +66,18 @@
             android:nestedScrollingEnabled="false" />
     </ScrollView>
 
-    <!-- Botón flotante para agregar -->
     <ImageButton
         android:id="@+id/fabAddProducto"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        app:tint="@color/white"
+        app:tint="@color/amarillo"
         android:src="@drawable/mas"
         android:scaleType="fitCenter"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginTop="580dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Agregar Productos"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/corte"
         android:layout_marginEnd="50dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
