@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/img_1"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- Encabezado -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detalle de Receta"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/ms"
+            android:textColor="@color/amarillo"
+            android:gravity="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Nombre -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nombre de la receta"
+            android:textColor="@color/amarillo"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editTextNombre"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/editext_redondeado"
+            android:hint="Nombre"
+            android:inputType="text"
+            android:autofillHints="name"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/white"
+            android:enabled="false"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Tiempo -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tiempo de preparación (minutos)"
+            android:textColor="@color/amarillo"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editTextTiempo"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/editext_redondeado"
+            android:hint="Tiempo"
+            android:inputType="number"
+            android:autofillHints="none"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/white"
+            android:enabled="false"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Descripción -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Descripción de la preparación"
+            android:textColor="@color/amarillo"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/editTextDescripcion"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:background="@drawable/editext_redondeado"
+            android:hint="Descripción"
+            android:inputType="textMultiLine"
+            android:autofillHints="none"
+            android:gravity="top|start"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/white"
+            android:enabled="false"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Sección de Ingredientes -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ingredientes"
+            android:textColor="@color/NaranjaFuerte"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Agregar ingrediente (solo visible en modo edición) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/layoutAgregarIngrediente"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="10dp"
+            app:cardBackgroundColor="@color/AmarilloClaro"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/editTextIngredienteNombre"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Nombre"
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <EditText
+                        android:id="@+id/editTextIngredienteCantidad"
+                        android:layout_width="80dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Cant."
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <EditText
+                        android:id="@+id/editTextIngredienteUnidad"
+                        android:layout_width="80dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Unidad"
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/buttonAgregarIngrediente"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="+ Agregar Ingrediente"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white"
+                    android:layout_marginTop="12dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+
+        <!-- Lista de ingredientes -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerIngredientes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:minHeight="100dp" />
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Botones de editar y eliminar (modo vista) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/buttonEditar"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:text="Editar"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/buttonEliminar"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:text="Eliminar"
+                    android:backgroundTint="@android:color/holo_red_dark"
+                    android:textColor="@color/white"
+                    android:layout_marginStart="8dp" />
+            </LinearLayout>
+
+            <!-- Botones de guardar y cancelar (modo edición) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/buttonCancelar"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:text="Cancelar"
+                    android:backgroundTint="@android:color/darker_gray"
+                    android:textColor="@color/white"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/buttonGuardar"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:text="Guardar Cambios"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white"
+                    android:layout_marginStart="8dp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Botón volver -->
+            <Button
+                android:id="@+id/buttonVolver"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Volver"
+                android:backgroundTint="@color/NaranjaFuerte"
+                android:textColor="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

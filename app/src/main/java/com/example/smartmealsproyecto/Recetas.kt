@@ -7,18 +7,20 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
 
 class Recetas : Fragment() {
-
     private var _binding: FragmentRecetasBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecetasAdapt
-    private var recetasList = mutableListOf<Receta>()
-    private var recetasListOriginal = mutableListOf<Receta>()
+    private val recetasList = mutableListOf<Receta>()
+    private val recetasListOriginal = mutableListOf<Receta>()
+
+    companion object {
+        private var nextId = 1
+        val recetasGlobales = mutableListOf<Receta>()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,7 +33,6 @@ class Recetas : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupData()
         setupSearch()
@@ -40,24 +41,61 @@ class Recetas : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        recyclerView = binding.rec
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        adapter = RecetasAdapt(recetasList)
-        recyclerView.adapter = adapter
+        adapter = RecetasAdapt(recetasList) { receta ->
+            abrirDetalleReceta(receta)
+        }
+        binding.rec.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@Recetas.adapter
+        }
     }
 
     private fun setupData() {
-        recetasList.apply {
-            add(Receta("Ensalada César", 15))
-            add(Receta("Pollo a la Brasa", 45))
-            add(Receta("Pasta Carbonara", 30))
-            add(Receta("Hamburguesa Casera", 25))
-            add(Receta("Sopa de Pollo", 20))
-            add(Receta("Tacos al Pastor", 35))
-            add(Receta("Pizza Margarita", 40))
-            add(Receta("Arroz con Pollo", 50))
+        if (recetasGlobales.isEmpty()) {
+            recetasGlobales.apply {
+                add(Receta(
+                    nextId++,
+                    "Ensalada César",
+                    15,
+                    "Mezcla lechuga romana con aderezo césar, crutones y queso parmesano.",
+                    mutableListOf(
+                        Ingrediente("Lechuga romana", "1", "pieza"),
+                        Ingrediente("Aderezo césar", "100", "ml"),
+                        Ingrediente("Crutones", "50", "g"),
+                        Ingrediente("Queso parmesano", "30", "g")
+                    )
+                ))
+                add(Receta(
+                    nextId++,
+                    "Pollo a la Brasa",
+                    45,
+                    "Pollo marinado con especias y cocido al horno hasta dorar.",
+                    mutableListOf(
+                        Ingrediente("Pollo entero", "1", "pieza"),
+                        Ingrediente("Paprika", "2", "cucharadas"),
+                        Ingrediente("Ajo", "4", "dientes"),
+                        Ingrediente("Aceite", "50", "ml")
+                    )
+                ))
+                add(Receta(
+                    nextId++,
+                    "Pasta Carbonara",
+                    30,
+                    "Pasta con salsa de huevo, queso parmesano y tocino.",
+                    mutableListOf(
+                        Ingrediente("Pasta", "400", "g"),
+                        Ingrediente("Tocino", "150", "g"),
+                        Ingrediente("Huevos", "3", "piezas"),
+                        Ingrediente("Queso parmesano", "100", "g")
+                    )
+                ))
+            }
         }
-        recetasListOriginal.addAll(recetasList)
+
+        recetasList.clear()
+        recetasList.addAll(recetasGlobales)
+        recetasListOriginal.clear()
+        recetasListOriginal.addAll(recetasGlobales)
         adapter.notifyDataSetChanged()
     }
 
@@ -74,19 +112,15 @@ class Recetas : Fragment() {
     }
 
     private fun setupSortButtons() {
-        // Ordenar A-Z
         binding.iconSortAZ.setOnClickListener {
             recetasList.sortBy { it.nombre }
-            adapter = RecetasAdapt(recetasList)
-            recyclerView.adapter = adapter
+            adapter.notifyDataSetChanged()
             Toast.makeText(requireContext(), "Ordenado A-Z", Toast.LENGTH_SHORT).show()
         }
 
-        // Ordenar Z-A
         binding.iconSortZA.setOnClickListener {
             recetasList.sortByDescending { it.nombre }
-            adapter = RecetasAdapt(recetasList)
-            recyclerView.adapter = adapter
+            adapter.notifyDataSetChanged()
             Toast.makeText(requireContext(), "Ordenado Z-A", Toast.LENGTH_SHORT).show()
         }
     }
@@ -95,19 +129,56 @@ class Recetas : Fragment() {
         val filtered = if (query.isEmpty()) {
             recetasListOriginal
         } else {
-            recetasListOriginal.filter { it.nombre.contains(query, ignoreCase = true) }
+            recetasListOriginal.filter {
+                it.nombre.contains(query, ignoreCase = true)
+            }
         }
         recetasList.clear()
         recetasList.addAll(filtered)
-        adapter = RecetasAdapt(recetasList)
-        recyclerView.adapter = adapter
+        adapter.notifyDataSetChanged()
     }
 
     private fun setupFab() {
         binding.fabAdd.setOnClickListener {
-            Toast.makeText(requireContext(), "Agregar nueva receta", Toast.LENGTH_SHORT).show()
-            // Aquí puedes abrir un diálogo o navegar a otra pantalla
+            val fragment = NuevaRecetaFragment.newInstance()
+            fragment.setOnRecetaGuardadaListener { receta ->
+                receta.id = nextId++
+                recetasGlobales.add(receta)
+                recetasListOriginal.add(receta)
+
+                val query = binding.editTextSearch.text.toString().trim()
+                filterRecetas(query)
+
+                Toast.makeText(requireContext(), "Receta guardada", Toast.LENGTH_SHORT).show()
+            }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.frame_layout, fragment)
+                .addToBackStack(null)
+                .commit()
         }
+    }
+
+    private fun abrirDetalleReceta(receta: Receta) {
+        val detalleFragment = DetalleRecetaFragment.newInstance(receta.id)
+        detalleFragment.setOnRecetaActualizadaListener {
+            adapter.notifyDataSetChanged()
+        }
+        detalleFragment.setOnRecetaEliminadaListener { recetaId ->
+            recetasGlobales.removeAll { it.id == recetaId }
+            recetasListOriginal.removeAll { it.id == recetaId }
+            recetasList.removeAll { it.id == recetaId }
+            adapter.notifyDataSetChanged()
+            Toast.makeText(requireContext(), "Receta eliminada", Toast.LENGTH_SHORT).show()
+        }
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, detalleFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.notifyDataSetChanged()
     }
 
     override fun onDestroyView() {

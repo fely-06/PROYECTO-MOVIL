@@ -1,6 +1,9 @@
 package com.example.smartmealsproyecto
 
 data class Receta(
-    val nombre: String,
-    val tiempoMinutos: Int
+    var id: Int,
+    var nombre: String,
+    var tiempoMinutos: Int,
+    var descripcion: String,
+    val ingredientes: MutableList<Ingrediente>
 )

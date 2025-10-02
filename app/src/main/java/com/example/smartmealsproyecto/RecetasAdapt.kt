@@ -4,17 +4,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.view.menu.ListMenuItemView
-import androidx.appcompat.view.menu.MenuView
 import androidx.recyclerview.widget.RecyclerView
 
-class RecetasAdapt(private val recetas: List<Receta>) :
-    RecyclerView.Adapter<RecetasAdapt.RecetaViewHolder>() {
-    inner class RecetaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val tvNombre = itemView.findViewById<TextView>(R.id.textViewNombrePlatillo)
-        val tvTiempo = itemView.findViewById<TextView>(R.id.textViewTiempoPreparacion)
-    }
+class RecetasAdapt(
+    private val recetas: List<Receta>,
+    private val onRecetaClick: (Receta) -> Unit
+) : RecyclerView.Adapter<RecetasAdapt.RecetaViewHolder>() {
 
+    inner class RecetaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val tvNombre: TextView = itemView.findViewById(R.id.textViewNombrePlatillo)
+        val tvTiempo: TextView = itemView.findViewById(R.id.textViewTiempoPreparacion)
+
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onRecetaClick(recetas[position])
+                }
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecetaViewHolder {
         val view = LayoutInflater.from(parent.context)
