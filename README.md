@@ -24,3 +24,5 @@
 - 1 push, terminar de hacer lo relacionado a fragmento Recetas del dia anterior (F)
 - 2 push, arreglar fragmento inventario (F)
 - Arreglar scroll view de recetas (H)
+### Jueves 2 de Octubre de 2025_:
+- Apartado Recetas ya y Agenda (F)
