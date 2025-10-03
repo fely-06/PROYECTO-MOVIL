@@ -1,28 +1,175 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@drawable/img_1"
-    tools:context=".Calendario">
+    android:padding="24dp">
 
-    <!-- TODO: Update blank fragment layout -->
-    <LinearLayout
-        android:id="@+id/encabezado"
+    <!-- Título -->
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/AmarilloClaro">
+        android:layout_height="wrap_content"
+        android:text="AGENDA"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/ms"
+        android:textColor="@color/NaranjaFuerte"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
 
-        <TextView
+    <!-- Calendario (vista estática por ahora) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="@drawable/editext_redondeado"
+        android:padding="16dp">
+
+        <!-- Encabezado del calendario -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="AGENDA"
-            android:textSize="35sp"
-            android:fontFamily="@font/ms"
-            android:gravity="center"
-            android:textColor="@color/NaranjaFuerte"
-            />
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
-</FrameLayout>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="MES"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <ImageView
+                android:id="@+id/buttonMostrarListaCompras"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/shop"
+                android:contentDescription="Lista de compras"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:backgroundTint="@color/NaranjaFuerte"/>
+        </LinearLayout>
+
+        <!-- Días de la semana -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="LUN"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="MAR"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="MIÉ"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="JUE"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="VIE"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="SÁB"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="DOM"
+                android:textSize="12sp"
+                android:textColor="@color/NaranjaFuerte"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <!-- Cuadrícula  -->
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:columnCount="7"
+            android:rowCount="5"
+            android:alignmentMode="alignBounds"
+            android:useDefaultMargins="true">
+
+            <!--  celdas -->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/celda_calendario"
+                android:gravity="center"
+                android:text="1"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_columnWeight="1"
+                android:layout_rowWeight="1"
+                android:background="@drawable/celda_calendario"
+                android:gravity="center"
+                android:text="2"
+                android:textSize="14sp"
+                android:textColor="@color/black" />
+
+        </GridLayout>
+    </LinearLayout>
+<!-- <Button
+        android:id="@+id/buttonMostrarListaCompras"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:text="Mostrar Lista de Compras"
+        android:backgroundTint="@color/NaranjaFuerte"
+        android:textColor="@color/white" /> -->
+
+</LinearLayout>
