@@ -6,12 +6,11 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.smartmealsproyecto.Recetas.Companion.nextId
-import com.example.smartmealsproyecto.Recetas.Companion.recetasGlobales
 
 class RecetasGAdap(
     private val recetas: List<Receta>,
-    private val onRecetaClick: (Receta) -> Unit
+    private val onRecetaClick: (Receta) -> Unit,
+    private val onCheckBoxCheck: (Receta) -> Unit
 ) : RecyclerView.Adapter<RecetasGAdap.RecetaViewHolder>() {
 
     inner class RecetaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -26,7 +25,16 @@ class RecetasGAdap(
                     onRecetaClick(recetas[position])
                 }
             }
+            checkB.setOnCheckedChangeListener { _, isChecked ->
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val receta = recetas[position]
+                    receta.seleccionada = isChecked
+                    onCheckBoxCheck(receta)
+                }
+            }
         }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecetaViewHolder {
@@ -39,6 +47,7 @@ class RecetasGAdap(
         val receta = recetas[position]
         holder.tvNombre.text = receta.nombre
         holder.tvTiempo.text = "${receta.tiempoMinutos} min."
+        holder.checkB.isChecked = receta.seleccionada
     }
     override fun getItemCount() = recetas.size
 }

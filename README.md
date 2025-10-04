@@ -33,3 +33,4 @@
 - Agregar Dialogo para crear una cuenta en Login (H)
 - Eventos de perfil (H)
 - Agregar Recetas en Home (H)
+- Hacer que se puedan seleccionar recetas y aparezcan en Mis recetas (H)

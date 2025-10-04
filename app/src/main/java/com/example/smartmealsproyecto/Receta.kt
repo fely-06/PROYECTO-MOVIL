@@ -5,5 +5,6 @@ data class Receta(
     var nombre: String,
     var tiempoMinutos: Int,
     var descripcion: String,
-    val ingredientes: MutableList<Ingrediente>
+    val ingredientes: MutableList<Ingrediente>,
+    var seleccionada: Boolean = false
 )

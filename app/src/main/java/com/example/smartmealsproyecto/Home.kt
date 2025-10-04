@@ -18,10 +18,10 @@ class Home : Fragment() {
     private val recetasList = mutableListOf<Receta>()
     private val recetasListOriginal = mutableListOf<Receta>()
 
-    companion object {
+    /*companion object {
         private var nextId = 1
         val recetasGlobales = mutableListOf<Receta>()
-    }
+    }*/
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,6 +34,7 @@ class Home : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        RecetasTotales.inicializarRecetas()
         setupRecyclerView()
         setupData()
         setupSearch()
@@ -41,9 +42,11 @@ class Home : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = RecetasGAdap(recetasList) { receta ->
-            abrirDetalleReceta(receta)
-        }
+        adapter = RecetasGAdap(
+            recetas = recetasList,
+            onRecetaClick = { receta -> abrirDetalleReceta(receta) },
+            onCheckBoxCheck = { receta -> AgregarReceta(receta) }
+        )
         binding.recG.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@Home.adapter
@@ -51,7 +54,12 @@ class Home : Fragment() {
     }
 
     private fun setupData() {
-        if (recetasGlobales.isEmpty()) {
+        recetasList.clear()
+        recetasList.addAll(RecetasTotales.recetasGlobales)
+        recetasListOriginal.clear()
+        recetasListOriginal.addAll(RecetasTotales.todasLasRecetas)
+        adapter.notifyDataSetChanged()
+        /*if (recetasGlobales.isEmpty()) {
             recetasGlobales.apply {
                 add(Receta(
                     nextId++,
@@ -96,7 +104,7 @@ class Home : Fragment() {
         recetasList.addAll(recetasGlobales)
         recetasListOriginal.clear()
         recetasListOriginal.addAll(recetasGlobales)
-        adapter.notifyDataSetChanged()
+        adapter.notifyDataSetChanged()*/
     }
 
     private fun setupSearch() {
@@ -144,6 +152,18 @@ class Home : Fragment() {
             .replace(R.id.frame_layout, detalleFragment)
             .addToBackStack(null)
             .commit()
+    }
+    private fun AgregarReceta(receta: Receta){
+        val misRecetas = RecetasTotales.misRecetas
+        if (receta.seleccionada) {
+            if (!misRecetas.any { it.id == receta.id }) {
+                misRecetas.add(receta)
+                Toast.makeText(requireContext(), "${receta.nombre} agregada a Mis Recetas", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            misRecetas.removeAll { it.id == receta.id }
+            Toast.makeText(requireContext(), "${receta.nombre} eliminada de Mis Recetas", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onResume() {

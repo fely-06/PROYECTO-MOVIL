@@ -106,17 +106,22 @@ class NuevaRecetaFragment : Fragment() {
             Toast.makeText(requireContext(), "Agrega al menos un ingrediente", Toast.LENGTH_SHORT).show()
             return
         }
-
+        try {
         val nuevaReceta = Receta(
-            id = 0, // Se asignará en el fragment padre
+            id = RecetasTotales.nextId++,
             nombre = nombre,
             tiempoMinutos = tiempo,
             descripcion = descripcion,
-            ingredientes = ingredientesList.toMutableList()
+            ingredientes = ingredientesList.toMutableList(),
+            seleccionada = true
         )
-
+        RecetasTotales.misRecetas.add(nuevaReceta)
         onRecetaGuardadaListener?.invoke(nuevaReceta)
         parentFragmentManager.popBackStack()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace() //para ver error
+        }
     }
 
     override fun onDestroyView() {

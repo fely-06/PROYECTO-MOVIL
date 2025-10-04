@@ -16,12 +16,12 @@ class Recetas : Fragment() {
 
     lateinit var adapter: RecetasAdapt
 
-
     companion object {
-        var nextId = 1
         val recetasList = mutableListOf<Receta>()
+        /*var nextId = 1
+
         val recetasGlobales = mutableListOf<Receta>()
-        val recetasListOriginal = mutableListOf<Receta>()
+        val recetasListOriginal = mutableListOf<Receta>()*/
 
     }
 
@@ -37,7 +37,8 @@ class Recetas : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
-        setupData()
+        cargarmisRecetas()
+        //setupData()
         setupSearch()
         setupSortButtons()
         setupFab()
@@ -47,14 +48,17 @@ class Recetas : Fragment() {
         adapter = RecetasAdapt(recetasList) { receta ->
             abrirDetalleReceta(receta)
         }
-
         binding.rec.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@Recetas.adapter
         }
     }
-
-    private fun setupData() {
+    private fun cargarmisRecetas() {
+        recetasList.clear()
+        recetasList.addAll(RecetasTotales.misRecetas)
+        adapter.notifyDataSetChanged()
+    }
+/*    private fun setupData() {
         if (recetasGlobales.isEmpty()) {
             recetasGlobales.apply {
                 add(Receta(
@@ -101,7 +105,7 @@ class Recetas : Fragment() {
         recetasListOriginal.clear()
         recetasListOriginal.addAll(recetasGlobales)
         adapter.notifyDataSetChanged()
-    }
+    }*/
 
     private fun setupSearch() {
         binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
@@ -131,9 +135,9 @@ class Recetas : Fragment() {
 
     private fun filterRecetas(query: String) {
         val filtered = if (query.isEmpty()) {
-            recetasListOriginal
+            recetasList
         } else {
-            recetasListOriginal.filter {
+            recetasList.filter {
                 it.nombre.contains(query, ignoreCase = true)
             }
         }
@@ -146,13 +150,13 @@ class Recetas : Fragment() {
         binding.fabAdd.setOnClickListener {
             val fragment = NuevaRecetaFragment.newInstance()
             fragment.setOnRecetaGuardadaListener { receta ->
-                receta.id = nextId++
-                recetasGlobales.add(receta)
-                recetasListOriginal.add(receta)
+                /*receta.id = recetasList.count()+1
+                receta.seleccionada = true*/
+                RecetasTotales.todasLasRecetas.add(receta)
 
-                val query = binding.editTextSearch.text.toString().trim()
+                /*val query = binding.editTextSearch.text.toString().trim()
                 filterRecetas(query)
-
+*/
                 Toast.makeText(requireContext(), "Receta guardada", Toast.LENGTH_SHORT).show()
             }
             parentFragmentManager.beginTransaction()
@@ -168,8 +172,8 @@ class Recetas : Fragment() {
             adapter.notifyDataSetChanged()
         }
         detalleFragment.setOnRecetaEliminadaListener { recetaId ->
-            recetasGlobales.removeAll { it.id == recetaId }
-            recetasListOriginal.removeAll { it.id == recetaId }
+            recetasList.removeAll { it.id == recetaId }
+            recetasList.removeAll { it.id == recetaId }
             recetasList.removeAll { it.id == recetaId }
             adapter.notifyDataSetChanged()
             Toast.makeText(requireContext(), "Receta eliminada", Toast.LENGTH_SHORT).show()
@@ -182,7 +186,7 @@ class Recetas : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        adapter.notifyDataSetChanged()
+        cargarmisRecetas()
     }
 
     override fun onDestroyView() {

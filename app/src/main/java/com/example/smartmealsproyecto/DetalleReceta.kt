@@ -75,7 +75,7 @@ class DetalleRecetaFragment() : Fragment() {
     }
 
     private fun cargarReceta() {
-        receta = Recetas.recetasGlobales.find { it.id == recetaId }
+        receta = RecetasTotales.todasLasRecetas.find { it.id == recetaId }
         receta?.let {
             binding.editTextNombre.setText(it.nombre)
             binding.editTextTiempo.setText(it.tiempoMinutos.toString())
