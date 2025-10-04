@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Adapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,13 +14,15 @@ class Recetas : Fragment() {
     private var _binding: FragmentRecetasBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var adapter: RecetasAdapt
-    private val recetasList = mutableListOf<Receta>()
-    private val recetasListOriginal = mutableListOf<Receta>()
+    lateinit var adapter: RecetasAdapt
+
 
     companion object {
-        private var nextId = 1
+        var nextId = 1
+        val recetasList = mutableListOf<Receta>()
         val recetasGlobales = mutableListOf<Receta>()
+        val recetasListOriginal = mutableListOf<Receta>()
+
     }
 
     override fun onCreateView(
@@ -44,6 +47,7 @@ class Recetas : Fragment() {
         adapter = RecetasAdapt(recetasList) { receta ->
             abrirDetalleReceta(receta)
         }
+
         binding.rec.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@Recetas.adapter
@@ -159,7 +163,7 @@ class Recetas : Fragment() {
     }
 
     private fun abrirDetalleReceta(receta: Receta) {
-        val detalleFragment = DetalleRecetaFragment.newInstance(receta.id)
+        val detalleFragment = DetalleRecetaFragment.newInstance(receta.id, false)
         detalleFragment.setOnRecetaActualizadaListener {
             adapter.notifyDataSetChanged()
         }

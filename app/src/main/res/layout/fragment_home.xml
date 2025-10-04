@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,7 +12,8 @@
         android:id="@+id/encabezado"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:background="@color/AmarilloClaro">
+        android:background="@color/AmarilloClaro"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:layout_width="match_parent"
@@ -24,5 +25,89 @@
             android:textColor="@color/NaranjaFuerte"
             />
     </LinearLayout>
+    <!-- Campo de búsqueda con ícono de lupa -->
+    <LinearLayout
+        android:id="@+id/Busqueda"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="70dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="@+id/encabezado"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
-</FrameLayout>
+        <!-- Barra de búsqueda -->
+        <LinearLayout
+
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:background="@drawable/editext_redondeado"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <EditText
+                android:id="@+id/editTextSearch"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"
+                android:hint="Explora recetas..."
+                android:fontFamily="@font/ms"
+                android:inputType="text"
+                android:autofillHints="search"
+                android:imeOptions="actionSearch"
+                android:textColor="@color/black"
+                android:textColorHint="@color/NaranjaFuerte"
+                android:textSize="16sp"
+                tools:ignore="HardcodedText" />
+
+            <ImageView
+                android:id="@+id/iconSearch"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/lupa"
+                android:contentDescription="Buscar" />
+        </LinearLayout>
+
+        <!-- Iconos de ordenamiento -->
+        <ImageView
+            android:id="@+id/iconSortAZ"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:padding="8dp"
+            android:src="@drawable/az"
+            android:contentDescription="Ordenar A-Z"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/iconSortZA"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:padding="8dp"
+            android:src="@drawable/za"
+            android:rotation="180"
+            android:contentDescription="Ordenar Z-A"
+            app:tint="@color/white" />
+    </LinearLayout>
+
+    <!-- RecyclerView para mostrar las recetas -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recG"
+        android:layout_width="match_parent"
+        android:layout_height="650dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:clipToPadding="false"
+        app:layout_constraintTop_toBottomOf="@+id/Busqueda"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

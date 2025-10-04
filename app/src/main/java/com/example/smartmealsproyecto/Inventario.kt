@@ -17,6 +17,8 @@ class Inventario : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var fab: ImageButton
+    private val ProductList = mutableListOf<Producto>()
+    private var nextId = 1
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,15 +36,14 @@ class Inventario : Fragment() {
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        val productos = listOf(
-            Producto("Manzana", 10),
-            Producto("Banana", 5),
-            Producto("Naranja", 8),
-            Producto("Fresa", 12),
-            Producto("Kiwi", 3)
-        )
+        ProductList.apply { add(Producto(nextId++,"Manzana", 10, "Piezas"))
+            add(Producto(nextId++,"Banana", 5, "Piezas"))
+            add(Producto(nextId++,"Naranja", 8, "Piezas"))
+            add(Producto(nextId++,"Fresa", 12, "Piezas"))
+            add(Producto(nextId++,"Kiwi", 3 , "Piezas"))}
 
-        recyclerView.adapter = ProductoAdap(productos)
+
+        recyclerView.adapter = ProductoAdap(ProductList)
 
         fab.setOnClickListener {
             showMenu(it)
@@ -60,10 +61,20 @@ class Inventario : Fragment() {
 
                 }
                 "Agregar Manualmente" -> {
-                    val nuevoFragment = Add_Product()
-                    requireActivity().supportFragmentManager.beginTransaction().replace(R.id.frame_layout, nuevoFragment).addToBackStack(null).commit()
-                    //val intent = Intent(PantallaPrincipal(), Recetas::class.java)
-                    //startActivity(intent)
+                    val dialog = AddProductDialog(ProductList) { producto ->
+                        val index = ProductList.indexOfFirst { it.Id == producto.Id }
+                        if (index != -1) {
+                            ProductList[index] = producto
+                        } else {
+                            ProductList.add(producto)
+                            if (producto.Id >= nextId) {
+                                nextId = producto.Id + 1
+                            }
+                        }
+                        recyclerView.adapter?.notifyDataSetChanged()
+                        Toast.makeText(context, "Producto guardado", Toast.LENGTH_SHORT).show()
+                    }
+                    dialog.show(childFragmentManager, "AddProductDialog")
                 }
             }
             true

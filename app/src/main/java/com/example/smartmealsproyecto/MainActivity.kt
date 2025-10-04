@@ -26,11 +26,17 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         val BotonLogin = findViewById<Button>(R.id.BotonLogin)
+        val BotonCrear = findViewById<Button>(R.id.BotonCrear)
 
         BotonLogin.setOnClickListener {
             val intent = Intent(this, PantallaPrincipal::class.java)
             startActivity(intent)
         }
+        BotonCrear.setOnClickListener {
+            val dialog = CrearCuentaDialog()
+            dialog.show(supportFragmentManager, "CrearCuentaDialog")
+        }
+
 
     }
 

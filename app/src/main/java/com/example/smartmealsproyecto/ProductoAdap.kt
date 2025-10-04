@@ -12,6 +12,7 @@ class ProductoAdap(private val productos: List<Producto>) :
     inner class ProductoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvNombre = itemView.findViewById<TextView>(R.id.tvNombreProducto)
         val tvCantidad = itemView.findViewById<TextView>(R.id.tvCantidadDisponible)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductoViewHolder {
@@ -23,7 +24,7 @@ class ProductoAdap(private val productos: List<Producto>) :
     override fun onBindViewHolder(holder: ProductoViewHolder, position: Int) {
         val producto = productos[position]
         holder.tvNombre.text = producto.nombre
-        holder.tvCantidad.text = "Cantidad disponible: ${producto.cantidad}"
+        holder.tvCantidad.text = "Disponible: ${producto.cantidad} ${producto.unidad}"
     }
 
     override fun getItemCount() = productos.size

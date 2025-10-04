@@ -1,5 +1,6 @@
 package com.example.smartmealsproyecto
 
+import android.R
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,11 +11,12 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentDetalleRecetaBinding
 
-class DetalleRecetaFragment : Fragment() {
+class DetalleRecetaFragment() : Fragment() {
     private var _binding: FragmentDetalleRecetaBinding? = null
     private val binding get() = _binding!!
 
     private var recetaId: Int = -1
+    private var Global: Boolean = false
     private var receta: Receta? = null
     private var modoEdicion = false
 
@@ -26,10 +28,12 @@ class DetalleRecetaFragment : Fragment() {
 
     companion object {
         private const val ARG_RECETA_ID = "receta_id"
+        private const val ARG_GLOBAL = "global"
 
-        fun newInstance(recetaId: Int) = DetalleRecetaFragment().apply {
+        fun newInstance(recetaId: Int, esGlobal: Boolean) = DetalleRecetaFragment().apply {
             arguments = Bundle().apply {
                 putInt(ARG_RECETA_ID, recetaId)
+                putBoolean(ARG_GLOBAL, esGlobal)
             }
         }
     }
@@ -46,6 +50,9 @@ class DetalleRecetaFragment : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             recetaId = it.getInt(ARG_RECETA_ID)
+        }
+        arguments?.let {
+            Global = it.getBoolean(ARG_GLOBAL)
         }
     }
 
@@ -113,10 +120,7 @@ class DetalleRecetaFragment : Fragment() {
         binding.buttonCancelar.setOnClickListener {
             if (modoEdicion) {
                 cargarReceta()
-                mostrarModoVista()
-            } else {
-                parentFragmentManager.popBackStack()
-            }
+                mostrarModoVista()}
         }
 
         binding.buttonVolver.setOnClickListener {
@@ -131,7 +135,6 @@ class DetalleRecetaFragment : Fragment() {
 
     private fun mostrarModoVista() {
         modoEdicion = false
-
         binding.editTextNombre.isEnabled = false
         binding.editTextTiempo.isEnabled = false
         binding.editTextDescripcion.isEnabled = false
@@ -141,10 +144,16 @@ class DetalleRecetaFragment : Fragment() {
 
         binding.layoutAgregarIngrediente.visibility = View.GONE
         binding.buttonGuardar.visibility = View.GONE
-        binding.buttonEditar.visibility = View.VISIBLE
-        binding.buttonEliminar.visibility = View.VISIBLE
+        binding.buttonCancelar.visibility = View.GONE
+        if(Global == true){
+            binding.buttonEditar.visibility = View.GONE
+            binding.buttonEliminar.visibility = View.GONE
+        }
+        if(Global == false){
+            binding.buttonEditar.visibility = View.VISIBLE
+            binding.buttonEliminar.visibility = View.VISIBLE
+        }
         binding.buttonVolver.visibility = View.VISIBLE
-        binding.buttonCancelar.text = "Volver"
     }
 
     private fun mostrarModoEdicion() {
@@ -162,6 +171,7 @@ class DetalleRecetaFragment : Fragment() {
         binding.buttonEditar.visibility = View.GONE
         binding.buttonEliminar.visibility = View.GONE
         binding.buttonVolver.visibility = View.GONE
+        binding.buttonCancelar.visibility = View.VISIBLE
         binding.buttonCancelar.text = "Cancelar"
     }
 

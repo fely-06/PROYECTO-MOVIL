@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/AmarilloClaro"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@color/NaranjaFuerte"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Agregar/Editar Productos"
+            android:textStyle="bold"
+            android:textAlignment="textEnd"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            />
+
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre del producto"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <AutoCompleteTextView
+        android:id="@+id/autoCompleteProducto"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Escribe el nombre del producto"
+        android:inputType="textCapWords"
+        android:completionThreshold="1"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/editext_redondeado"
+        android:paddingStart="20dp"/>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cantidad"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp" />
+
+            <EditText
+                android:id="@+id/editTextCantidad"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Ej: 3"
+                android:inputType="number"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/editext_redondeado"
+                android:paddingStart="20dp"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="20dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Unidad"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"
+               />
+
+            <EditText
+                android:id="@+id/editTextUnidad"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:hint="Ej: Piezas, Gramos..."
+                android:inputType="text"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/editext_redondeado"
+                android:paddingStart="20dp"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
+        <Button
+            android:id="@+id/btncancelar"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:text="Cancelar"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            />
+        <Button
+            android:id="@+id/btnguardar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Guardar"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            />
+    </LinearLayout>
+
+</LinearLayout>

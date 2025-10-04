@@ -24,5 +24,12 @@
 - 1 push, terminar de hacer lo relacionado a fragmento Recetas del dia anterior (F)
 - 2 push, arreglar fragmento inventario (F)
 - Arreglar scroll view de recetas (H)
-### Jueves 2 de Octubre de 2025_:
+### _Jueves 2 de Octubre de 2025_:
 - Apartado Recetas ya y Agenda (F)
+
+### _Viernes 3 de Octubre de 2025_: 
+- Arreglar problemas de vizualizacion en recetas (H)
+- Aplicar eventos para agregar y modificar lista de productos (inventario). (H)
+- Agregar Dialogo para crear una cuenta en Login (H)
+- Eventos de perfil (H)
+- Agregar Recetas en Home (H)

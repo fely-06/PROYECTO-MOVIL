@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/AmarilloClaro"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@color/NaranjaFuerte"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CREAR CUENTA"
+            android:textStyle="bold"
+            android:textAlignment="textEnd"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            />
+
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre de Usuario"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/Usuario"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Nombre de usuario"
+        android:textColorHint="@color/white"
+        android:paddingStart="20dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/editext_redondeado"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Correo Electronico"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/correo"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Correo Electronico"
+        android:textColorHint="@color/white"
+        android:paddingStart="20dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/editext_redondeado"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Contraseña"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/passw"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingStart="20dp"
+        android:background="@drawable/editext_redondeado"
+        android:hint="Contraseña"
+        android:textColorHint="@color/white"
+        android:inputType="textPassword"
+        android:completionThreshold="1"
+        android:layout_marginTop="8dp" />
+
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
+        >
+        <Button
+            android:id="@+id/btncancel"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:text="Cancelar"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            />
+        <Button
+            android:id="@+id/btncrear"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Crear Cuenta"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            />
+    </LinearLayout>
+
+</LinearLayout>

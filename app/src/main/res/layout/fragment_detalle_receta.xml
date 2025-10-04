@@ -86,11 +86,12 @@
 
         <EditText
             android:id="@+id/editTextDescripcion"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/editext_redondeado"
             android:hint="Descripción"
             android:inputType="textMultiLine"
+            android:padding="15dp"
             android:autofillHints="none"
             android:gravity="top|start"
             android:paddingStart="16dp"
@@ -197,7 +198,7 @@
         <!-- Botones de acción -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="300dp"
             android:orientation="vertical">
 
             <!-- Botones de editar y eliminar (modo vista) -->
@@ -268,6 +269,7 @@
                 android:text="Volver"
                 android:backgroundTint="@color/NaranjaFuerte"
                 android:textColor="@color/white" />
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

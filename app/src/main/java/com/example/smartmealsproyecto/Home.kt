@@ -1,59 +1,158 @@
 package com.example.smartmealsproyecto
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.smartmealsproyecto.databinding.FragmentHomeBinding
+import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [Home.newInstance] factory method to
- * create an instance of this fragment.
- */
 class Home : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+    private lateinit var adapter: RecetasGAdap
+    private val recetasList = mutableListOf<Receta>()
+    private val recetasListOriginal = mutableListOf<Receta>()
+
+    companion object {
+        private var nextId = 1
+        val recetasGlobales = mutableListOf<Receta>()
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false)
+    ): View {
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment Home.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            Home().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupRecyclerView()
+        setupData()
+        setupSearch()
+        setupSortButtons()
+    }
+
+    private fun setupRecyclerView() {
+        adapter = RecetasGAdap(recetasList) { receta ->
+            abrirDetalleReceta(receta)
+        }
+        binding.recG.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = this@Home.adapter
+        }
+    }
+
+    private fun setupData() {
+        if (recetasGlobales.isEmpty()) {
+            recetasGlobales.apply {
+                add(Receta(
+                    nextId++,
+                    "Ensalada César",
+                    15,
+                    "Mezcla lechuga romana con aderezo césar, crutones y queso parmesano.",
+                    mutableListOf(
+                        Ingrediente("Lechuga romana", "1", "pieza"),
+                        Ingrediente("Aderezo césar", "100", "ml"),
+                        Ingrediente("Crutones", "50", "g"),
+                        Ingrediente("Queso parmesano", "30", "g")
+                    )
+                ))
+                add(Receta(
+                    nextId++,
+                    "Pollo a la Brasa",
+                    45,
+                    "Pollo marinado con especias y cocido al horno hasta dorar.",
+                    mutableListOf(
+                        Ingrediente("Pollo entero", "1", "pieza"),
+                        Ingrediente("Paprika", "2", "cucharadas"),
+                        Ingrediente("Ajo", "4", "dientes"),
+                        Ingrediente("Aceite", "50", "ml")
+                    )
+                ))
+                add(Receta(
+                    nextId++,
+                    "Pasta Carbonara",
+                    30,
+                    "Pasta con salsa de huevo, queso parmesano y tocino.",
+                    mutableListOf(
+                        Ingrediente("Pasta", "400", "g"),
+                        Ingrediente("Tocino", "150", "g"),
+                        Ingrediente("Huevos", "3", "piezas"),
+                        Ingrediente("Queso parmesano", "100", "g")
+                    )
+                ))
             }
+        }
+
+        recetasList.clear()
+        recetasList.addAll(recetasGlobales)
+        recetasListOriginal.clear()
+        recetasListOriginal.addAll(recetasGlobales)
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun setupSearch() {
+        binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = binding.editTextSearch.text.toString().trim()
+                filterRecetas(query)
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun setupSortButtons() {
+        binding.iconSortAZ.setOnClickListener {
+            recetasList.sortBy { it.nombre }
+            adapter.notifyDataSetChanged()
+            Toast.makeText(requireContext(), "Ordenado A-Z", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.iconSortZA.setOnClickListener {
+            recetasList.sortByDescending { it.nombre }
+            adapter.notifyDataSetChanged()
+            Toast.makeText(requireContext(), "Ordenado Z-A", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun filterRecetas(query: String) {
+        val filtered = if (query.isEmpty()) {
+            recetasListOriginal
+        } else {
+            recetasListOriginal.filter {
+                it.nombre.contains(query, ignoreCase = true)
+            }
+        }
+        recetasList.clear()
+        recetasList.addAll(filtered)
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun abrirDetalleReceta(receta: Receta) {
+        val detalleFragment = DetalleRecetaFragment.newInstance(receta.id, true)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, detalleFragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.notifyDataSetChanged()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
