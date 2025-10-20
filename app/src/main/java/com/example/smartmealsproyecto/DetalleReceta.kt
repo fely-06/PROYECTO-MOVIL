@@ -17,7 +17,7 @@ class DetalleRecetaFragment() : Fragment() {
 
     private var recetaId: Int = -1
     private var Global: Boolean = false
-    private var receta: Receta? = null
+    private var receta: Receta2? = null
     private var modoEdicion = false
 
     private lateinit var ingredientesAdapter: IngredientesAdapter
@@ -78,11 +78,11 @@ class DetalleRecetaFragment() : Fragment() {
         receta = RecetasTotales.todasLasRecetas.find { it.id == recetaId }
         receta?.let {
             binding.editTextNombre.setText(it.nombre)
-            binding.editTextTiempo.setText(it.tiempoMinutos.toString())
+            binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
             binding.editTextDescripcion.setText(it.descripcion)
 
-            ingredientesList.clear()
-            ingredientesList.addAll(it.ingredientes)
+            //ingredientesList.clear()
+            //ingredientesList.addAll(it.ingredientes)
         }
     }
 
@@ -215,11 +215,11 @@ class DetalleRecetaFragment() : Fragment() {
         }
 
         receta?.let {
-            it.nombre = nombre
-            it.tiempoMinutos = tiempo
-            it.descripcion = descripcion
-            it.ingredientes.clear()
-            it.ingredientes.addAll(ingredientesList)
+            it.nombre == nombre
+            it.tiempoPreparacion == tiempo
+            it.descripcion == descripcion
+            //it.ingredientes.clear()
+            //it.ingredientes.addAll(ingredientesList)
         }
 
         onRecetaActualizadaListener?.invoke()

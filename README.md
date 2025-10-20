@@ -34,3 +34,6 @@
 - Eventos de perfil (H)
 - Agregar Recetas en Home (H)
 - Hacer que se puedan seleccionar recetas y aparezcan en Mis recetas (H)
+
+### _Domingo 19 de Octubre de 2025_:
+- Crear conexion a SQLite y desplegar tabla catalogo Receta (H).

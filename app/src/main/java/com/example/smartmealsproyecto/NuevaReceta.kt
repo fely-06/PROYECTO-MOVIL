@@ -16,13 +16,13 @@ class NuevaRecetaFragment : Fragment() {
     private val ingredientesList = mutableListOf<Ingrediente>()
     private lateinit var ingredientesAdapter: IngredientesAdapter
 
-    private var onRecetaGuardadaListener: ((Receta) -> Unit)? = null
+    private var onRecetaGuardadaListener: ((Receta2) -> Unit)? = null
 
     companion object {
         fun newInstance() = NuevaRecetaFragment()
     }
 
-    fun setOnRecetaGuardadaListener(listener: (Receta) -> Unit) {
+    fun setOnRecetaGuardadaListener(listener: (Receta2) -> Unit) {
         onRecetaGuardadaListener = listener
     }
 
@@ -107,13 +107,14 @@ class NuevaRecetaFragment : Fragment() {
             return
         }
         try {
-        val nuevaReceta = Receta(
+        val nuevaReceta = Receta2(
             id = RecetasTotales.nextId++,
+            idUsuario = 1,
             nombre = nombre,
-            tiempoMinutos = tiempo,
             descripcion = descripcion,
-            ingredientes = ingredientesList.toMutableList(),
-            seleccionada = true
+            tiempoPreparacion = tiempo,
+            esGlobal = true,///ingredientesList.toMutableList(),
+            favorita = true
         )
         RecetasTotales.misRecetas.add(nuevaReceta)
         onRecetaGuardadaListener?.invoke(nuevaReceta)

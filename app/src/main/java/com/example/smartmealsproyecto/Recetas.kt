@@ -17,11 +17,7 @@ class Recetas : Fragment() {
     lateinit var adapter: RecetasAdapt
 
     companion object {
-        val recetasList = mutableListOf<Receta>()
-        /*var nextId = 1
-
-        val recetasGlobales = mutableListOf<Receta>()
-        val recetasListOriginal = mutableListOf<Receta>()*/
+        val recetasList = mutableListOf<Receta2>()
 
     }
 
@@ -38,7 +34,6 @@ class Recetas : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         cargarmisRecetas()
-        //setupData()
         setupSearch()
         setupSortButtons()
         setupFab()
@@ -58,55 +53,6 @@ class Recetas : Fragment() {
         recetasList.addAll(RecetasTotales.misRecetas)
         adapter.notifyDataSetChanged()
     }
-/*    private fun setupData() {
-        if (recetasGlobales.isEmpty()) {
-            recetasGlobales.apply {
-                add(Receta(
-                    nextId++,
-                    "Ensalada César",
-                    15,
-                    "Mezcla lechuga romana con aderezo césar, crutones y queso parmesano.",
-                    mutableListOf(
-                        Ingrediente("Lechuga romana", "1", "pieza"),
-                        Ingrediente("Aderezo césar", "100", "ml"),
-                        Ingrediente("Crutones", "50", "g"),
-                        Ingrediente("Queso parmesano", "30", "g")
-                    )
-                ))
-                add(Receta(
-                    nextId++,
-                    "Pollo a la Brasa",
-                    45,
-                    "Pollo marinado con especias y cocido al horno hasta dorar.",
-                    mutableListOf(
-                        Ingrediente("Pollo entero", "1", "pieza"),
-                        Ingrediente("Paprika", "2", "cucharadas"),
-                        Ingrediente("Ajo", "4", "dientes"),
-                        Ingrediente("Aceite", "50", "ml")
-                    )
-                ))
-                add(Receta(
-                    nextId++,
-                    "Pasta Carbonara",
-                    30,
-                    "Pasta con salsa de huevo, queso parmesano y tocino.",
-                    mutableListOf(
-                        Ingrediente("Pasta", "400", "g"),
-                        Ingrediente("Tocino", "150", "g"),
-                        Ingrediente("Huevos", "3", "piezas"),
-                        Ingrediente("Queso parmesano", "100", "g")
-                    )
-                ))
-            }
-        }
-
-        recetasList.clear()
-        recetasList.addAll(recetasGlobales)
-        recetasListOriginal.clear()
-        recetasListOriginal.addAll(recetasGlobales)
-        adapter.notifyDataSetChanged()
-    }*/
-
     private fun setupSearch() {
         binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
@@ -150,13 +96,9 @@ class Recetas : Fragment() {
         binding.fabAdd.setOnClickListener {
             val fragment = NuevaRecetaFragment.newInstance()
             fragment.setOnRecetaGuardadaListener { receta ->
-                /*receta.id = recetasList.count()+1
-                receta.seleccionada = true*/
+
                 RecetasTotales.todasLasRecetas.add(receta)
 
-                /*val query = binding.editTextSearch.text.toString().trim()
-                filterRecetas(query)
-*/
                 Toast.makeText(requireContext(), "Receta guardada", Toast.LENGTH_SHORT).show()
             }
             parentFragmentManager.beginTransaction()
@@ -166,7 +108,7 @@ class Recetas : Fragment() {
         }
     }
 
-    private fun abrirDetalleReceta(receta: Receta) {
+    private fun abrirDetalleReceta(receta: Receta2) {
         val detalleFragment = DetalleRecetaFragment.newInstance(receta.id, false)
         detalleFragment.setOnRecetaActualizadaListener {
             adapter.notifyDataSetChanged()

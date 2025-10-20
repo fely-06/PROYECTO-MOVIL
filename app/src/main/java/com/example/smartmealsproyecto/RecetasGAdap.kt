@@ -8,9 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class RecetasGAdap(
-    private val recetas: List<Receta>,
-    private val onRecetaClick: (Receta) -> Unit,
-    private val onCheckBoxCheck: (Receta) -> Unit
+    private val recetas: List<Receta2>,
+    private val onRecetaClick: (Receta2) -> Unit,
+    private val onCheckBoxCheck: (Receta2) -> Unit
 ) : RecyclerView.Adapter<RecetasGAdap.RecetaViewHolder>() {
 
     inner class RecetaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -29,7 +29,7 @@ class RecetasGAdap(
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val receta = recetas[position]
-                    receta.seleccionada = isChecked
+                    receta.favorita == isChecked
                     onCheckBoxCheck(receta)
                 }
             }
@@ -46,8 +46,8 @@ class RecetasGAdap(
     override fun onBindViewHolder(holder: RecetaViewHolder, position: Int) {
         val receta = recetas[position]
         holder.tvNombre.text = receta.nombre
-        holder.tvTiempo.text = "${receta.tiempoMinutos} min."
-        holder.checkB.isChecked = receta.seleccionada
+        holder.tvTiempo.text = "${receta.tiempoPreparacion} min."
+        holder.checkB.isChecked = receta.favorita
     }
     override fun getItemCount() = recetas.size
 }

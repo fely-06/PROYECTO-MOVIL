@@ -9,19 +9,15 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentHomeBinding
 import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
+import java.io.IOException
 
 class Home : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var adapter: RecetasGAdap
-    private val recetasList = mutableListOf<Receta>()
-    private val recetasListOriginal = mutableListOf<Receta>()
-
-    /*companion object {
-        private var nextId = 1
-        val recetasGlobales = mutableListOf<Receta>()
-    }*/
+    private val recetasList = mutableListOf<Receta2>()
+    private val recetasListOriginal = mutableListOf<Receta2>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,9 +30,8 @@ class Home : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        RecetasTotales.inicializarRecetas()
         setupRecyclerView()
-        setupData()
+        loadRecetasFromDatabase()
         setupSearch()
         setupSortButtons()
     }
@@ -53,58 +48,44 @@ class Home : Fragment() {
         }
     }
 
-    private fun setupData() {
-        recetasList.clear()
-        recetasList.addAll(RecetasTotales.recetasGlobales)
-        recetasListOriginal.clear()
-        recetasListOriginal.addAll(RecetasTotales.todasLasRecetas)
-        adapter.notifyDataSetChanged()
-        /*if (recetasGlobales.isEmpty()) {
-            recetasGlobales.apply {
-                add(Receta(
-                    nextId++,
-                    "Ensalada César",
-                    15,
-                    "Mezcla lechuga romana con aderezo césar, crutones y queso parmesano.",
-                    mutableListOf(
-                        Ingrediente("Lechuga romana", "1", "pieza"),
-                        Ingrediente("Aderezo césar", "100", "ml"),
-                        Ingrediente("Crutones", "50", "g"),
-                        Ingrediente("Queso parmesano", "30", "g")
-                    )
-                ))
-                add(Receta(
-                    nextId++,
-                    "Pollo a la Brasa",
-                    45,
-                    "Pollo marinado con especias y cocido al horno hasta dorar.",
-                    mutableListOf(
-                        Ingrediente("Pollo entero", "1", "pieza"),
-                        Ingrediente("Paprika", "2", "cucharadas"),
-                        Ingrediente("Ajo", "4", "dientes"),
-                        Ingrediente("Aceite", "50", "ml")
-                    )
-                ))
-                add(Receta(
-                    nextId++,
-                    "Pasta Carbonara",
-                    30,
-                    "Pasta con salsa de huevo, queso parmesano y tocino.",
-                    mutableListOf(
-                        Ingrediente("Pasta", "400", "g"),
-                        Ingrediente("Tocino", "150", "g"),
-                        Ingrediente("Huevos", "3", "piezas"),
-                        Ingrediente("Queso parmesano", "100", "g")
-                    )
-                ))
-            }
+    private fun loadRecetasFromDatabase() {
+        // Obtener instancia del helper
+        val dbHelper = DatabaseHelper.getInstance(requireContext())
+        dbHelper.createDatabase()
+        try {
+            dbHelper.createDatabase() // Asegura que la BD esté copiada
+        } catch (e: IOException) {
+            Toast.makeText(requireContext(), "Error al cargar la base de datos", Toast.LENGTH_LONG).show()
+            return
         }
 
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery("SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, " +
+                "favorita FROM Receta WHERE esGlobal = 1", null)
+
         recetasList.clear()
-        recetasList.addAll(recetasGlobales)
         recetasListOriginal.clear()
-        recetasListOriginal.addAll(recetasGlobales)
-        adapter.notifyDataSetChanged()*/
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val id = getInt(getColumnIndexOrThrow("idReceta"))
+                    val idUsuario = getInt(getColumnIndexOrThrow("idUsuario"))
+                    val nombre = getString(getColumnIndexOrThrow("nombre"))
+                    val descripcion = getString(getColumnIndexOrThrow("descripcion")) ?: ""
+                    val tiempo = getInt(getColumnIndexOrThrow("tiempoPreparacion"))
+                    val esGlobal = getInt(getColumnIndexOrThrow("esGlobal")) == 1
+                    val favorita = getInt(getColumnIndexOrThrow("favorita")) == 1
+
+                    val receta = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
+                    recetasList.add(receta)
+                    recetasListOriginal.add(receta)
+                } while (cursor.moveToNext())
+            }
+        }
+            cursor.close()
+            db.close()
+        adapter.notifyDataSetChanged()
     }
 
     private fun setupSearch() {
@@ -146,16 +127,16 @@ class Home : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
-    private fun abrirDetalleReceta(receta: Receta) {
+    private fun abrirDetalleReceta(receta: Receta2) {
         val detalleFragment = DetalleRecetaFragment.newInstance(receta.id, true)
         parentFragmentManager.beginTransaction()
             .replace(R.id.frame_layout, detalleFragment)
             .addToBackStack(null)
             .commit()
     }
-    private fun AgregarReceta(receta: Receta){
+    private fun AgregarReceta(receta: Receta2){
         val misRecetas = RecetasTotales.misRecetas
-        if (receta.seleccionada) {
+        if (receta.favorita) {
             if (!misRecetas.any { it.id == receta.id }) {
                 misRecetas.add(receta)
                 Toast.makeText(requireContext(), "${receta.nombre} agregada a Mis Recetas", Toast.LENGTH_SHORT).show()
