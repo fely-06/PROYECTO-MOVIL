@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentHomeBinding
-import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
 import java.io.IOException
 
 class Home : Fragment() {
@@ -49,42 +48,10 @@ class Home : Fragment() {
     }
 
     private fun loadRecetasFromDatabase() {
-        // Obtener instancia del helper
-        val dbHelper = DatabaseHelper.getInstance(requireContext())
-        dbHelper.createDatabase()
-        try {
-            dbHelper.createDatabase() // Asegura que la BD esté copiada
-        } catch (e: IOException) {
-            Toast.makeText(requireContext(), "Error al cargar la base de datos", Toast.LENGTH_LONG).show()
-            return
-        }
-
-        val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, " +
-                "favorita FROM Receta WHERE esGlobal = 1", null)
-
-        recetasList.clear()
-        recetasListOriginal.clear()
-
-        with(cursor) {
-            if (moveToFirst()) {
-                do {
-                    val id = getInt(getColumnIndexOrThrow("idReceta"))
-                    val idUsuario = getInt(getColumnIndexOrThrow("idUsuario"))
-                    val nombre = getString(getColumnIndexOrThrow("nombre"))
-                    val descripcion = getString(getColumnIndexOrThrow("descripcion")) ?: ""
-                    val tiempo = getInt(getColumnIndexOrThrow("tiempoPreparacion"))
-                    val esGlobal = getInt(getColumnIndexOrThrow("esGlobal")) == 1
-                    val favorita = getInt(getColumnIndexOrThrow("favorita")) == 1
-
-                    val receta = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
-                    recetasList.add(receta)
-                    recetasListOriginal.add(receta)
-                } while (cursor.moveToNext())
-            }
-        }
-            cursor.close()
-            db.close()
+        val crud = ClaseCRUD(requireContext())
+        crud.iniciarBD()
+        crud.obtenerRecetasGlobales(recetasList, recetasListOriginal)
+            //db.close()
         adapter.notifyDataSetChanged()
     }
 
