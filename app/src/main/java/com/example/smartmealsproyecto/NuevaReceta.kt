@@ -113,9 +113,10 @@ class NuevaRecetaFragment : Fragment() {
             nombre = nombre,
             descripcion = descripcion,
             tiempoPreparacion = tiempo,
-            esGlobal = true,///ingredientesList.toMutableList(),
-            favorita = true
+            esGlobal = false,
+            favorita = false
         )
+            val crud = ClaseCRUD(requireContext())
         RecetasTotales.misRecetas.add(nuevaReceta)
         onRecetaGuardadaListener?.invoke(nuevaReceta)
         parentFragmentManager.popBackStack()

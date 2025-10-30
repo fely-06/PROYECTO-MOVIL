@@ -1,9 +1,10 @@
 package com.example.smartmealsproyecto
 
+import android.content.ContentValues
 import android.content.Context
+import android.database.SQLException
 import android.widget.Toast
 import java.io.IOException
-
 class ClaseCRUD(private val context: Context) {
     val dbHelper = DatabaseHelper.getInstance(context)
     fun iniciarBD(){
@@ -40,6 +41,46 @@ class ClaseCRUD(private val context: Context) {
             }
         }
         cursor.close()
-    }
+    }fun crearReceta(receta: Receta2, ingredientes: List<Ingrediente>): Long {
+        val db = dbHelper.writableDatabase
+        return try {
+            db.beginTransaction() // 👈 inicia la transacción
 
+            // 1. Insertar receta
+            val valuesReceta = ContentValues()
+            valuesReceta.put("idUsuario", receta.idUsuario)
+            valuesReceta.put("nombre", receta.nombre)
+            valuesReceta.put("descripcion", receta.descripcion ?: "")
+            valuesReceta.put("tiempoPreparacion", receta.tiempoPreparacion)
+            valuesReceta.put("esGlobal", if (receta.esGlobal) 1 else 0)
+            valuesReceta.put("favorita", if (receta.favorita) 1 else 0)
+
+            val idReceta = db.insert("Receta", null, valuesReceta)
+            if (idReceta == -1L) {
+                throw SQLException("No se pudo insertar la receta")
+            }
+
+            // 2. Insertar ingredientes
+            for (ing in ingredientes) {
+                val valuesIng = ContentValues()
+                valuesIng.put("idReceta", idReceta)
+                valuesIng.put("nombre", ing.nombre)
+                valuesIng.put("cantidad", ing.cantidad)
+                valuesIng.put("unidad", ing.unidad)
+
+                if (db.insert("Ingrediente", null, valuesIng) == -1L) {
+                    throw SQLException("Error al insertar ingrediente")
+                }
+            }
+ db.setTransactionSuccessful()
+            idReceta
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+            -1L
+        } finally {
+            db.endTransaction()
+        }
+    }
 }

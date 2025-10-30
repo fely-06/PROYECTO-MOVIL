@@ -34,7 +34,7 @@ class DatabaseHelper private constructor(context: Context) : SQLiteOpenHelper(
     @Throws(IOException::class)
     fun createDatabase() {
         if (!checkDataBase()) {
-            this.readableDatabase.close()
+            this.writableDatabase.close()
             copyDataBase()
         }
     }

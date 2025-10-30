@@ -68,24 +68,61 @@ class DetalleRecetaFragment() : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        cargarReceta()
+        cargarRecetaDesdeBD()
         setupIngredientesRecyclerView()
         setupListeners()
         mostrarModoVista()
     }
 
-    private fun cargarReceta() {
-        receta = RecetasTotales.todasLasRecetas.find { it.id == recetaId }
+    private fun cargarRecetaDesdeBD() {
+        val crud = ClaseCRUD(requireContext())
+        crud.iniciarBD()
+
+        // Cargar receta
+        val db = crud.dbHelper.readableDatabase
+        val cursorReceta = db.rawQuery(
+            "SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita " +
+                    "FROM Receta WHERE idReceta = ?",
+            arrayOf(recetaId.toString())
+        )
+
+        if (cursorReceta.moveToFirst()) {
+            val id = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idReceta"))
+            val idUsuario = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idUsuario"))
+            val nombre = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("nombre"))
+            val descripcion = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion")) ?: ""
+            val tiempo = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
+            val esGlobal = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
+            val favorita = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
+
+            receta = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
+
+            // Cargar ingredientes
+            ingredientesList.clear()
+            val cursorIng = db.rawQuery(
+                "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
+                arrayOf(recetaId.toString())
+            )
+            with(cursorIng) {
+                if (moveToFirst()) {
+                    do {
+                        val nom = getString(getColumnIndexOrThrow("nombre"))
+                        val cant = getString(getColumnIndexOrThrow("cantidad"))
+                        val uni = getString(getColumnIndexOrThrow("unidad"))
+                        ingredientesList.add(Ingrediente(null, recetaId, nom, cant, uni))
+                    } while (moveToNext())
+                }
+                close()
+            }
+        }
+        cursorReceta.close()
         receta?.let {
             binding.editTextNombre.setText(it.nombre)
             binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
             binding.editTextDescripcion.setText(it.descripcion)
-
-            //ingredientesList.clear()
-            //ingredientesList.addAll(it.ingredientes)
         }
+        ingredientesAdapter.notifyDataSetChanged()
     }
-
     private fun setupIngredientesRecyclerView() {
         ingredientesAdapter = IngredientesAdapter(ingredientesList) { ingrediente ->
             if (modoEdicion) {
@@ -119,7 +156,7 @@ class DetalleRecetaFragment() : Fragment() {
 
         binding.buttonCancelar.setOnClickListener {
             if (modoEdicion) {
-                cargarReceta()
+                cargarRecetaDesdeBD()
                 mostrarModoVista()}
         }
 
@@ -192,14 +229,13 @@ class DetalleRecetaFragment() : Fragment() {
             Toast.makeText(requireContext(), "Completa todos los campos del ingrediente", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun guardarCambios() {
         val nombre = binding.editTextNombre.text.toString().trim()
         val tiempoStr = binding.editTextTiempo.text.toString().trim()
         val descripcion = binding.editTextDescripcion.text.toString().trim()
 
-        if (nombre.isEmpty() || tiempoStr.isEmpty() || descripcion.isEmpty()) {
-            Toast.makeText(requireContext(), "Completa todos los campos", Toast.LENGTH_SHORT).show()
+        if (nombre.isEmpty() || tiempoStr.isEmpty()) {
+            Toast.makeText(requireContext(), "Nombre y tiempo son obligatorios", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -214,19 +250,21 @@ class DetalleRecetaFragment() : Fragment() {
             return
         }
 
-        receta?.let {
-            it.nombre == nombre
-            it.tiempoPreparacion == tiempo
-            it.descripcion == descripcion
-            //it.ingredientes.clear()
-            //it.ingredientes.addAll(ingredientesList)
+        // Actualizar en BD
+        val crud = ClaseCRUD(requireContext())
+        val recetaActualizada = receta?.copy(
+            nombre = nombre,
+            descripcion = descripcion.ifEmpty { null },
+            tiempoPreparacion = tiempo
+        ) ?: return
+
+        val exito = crud.actualizarReceta(recetaActualizada, ingredientesList)
+        if (exito) {
+            onRecetaActualizadaListener?.invoke()
+            Toast.makeText(requireContext(), "Receta actualizada", Toast.LENGTH_SHORT).show()
+            mostrarModoVista()
         }
-
-        onRecetaActualizadaListener?.invoke()
-        Toast.makeText(requireContext(), "Receta actualizada", Toast.LENGTH_SHORT).show()
-        mostrarModoVista()
     }
-
     private fun mostrarDialogoEliminar() {
         AlertDialog.Builder(requireContext())
             .setTitle("Eliminar receta")
