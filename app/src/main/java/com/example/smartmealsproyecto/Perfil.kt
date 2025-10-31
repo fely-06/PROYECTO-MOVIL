@@ -27,6 +27,10 @@ class Perfil : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val crud = ClaseCRUD(requireContext())
+        crud.iniciarBD()
+        binding.user.setText(ClaseUsuario.nombre)
+        binding.contra.setText(ClaseUsuario.contras)
         binding.user.isEnabled = false
         binding.contra.isEnabled = false
         //abrir galeria cuando haya click
@@ -46,8 +50,6 @@ class Perfil : Fragment() {
                 .setTitle("Advertencia")
                 .setMessage("¿Estás seguro de quieres elimiar tu cuenta?")
                 .setPositiveButton("Eliminar") { _, _ ->
-                    val crud = ClaseCRUD(requireContext())
-                    crud.iniciarBD()
                     var elimino: Boolean = false
                     lifecycleScope.launch {
                     elimino = crud.eliminarUsuario()

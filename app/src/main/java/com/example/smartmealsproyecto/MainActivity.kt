@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 val crud = ClaseCRUD(this)
                 crud.iniciarBD()
                 lifecycleScope.launch {
-                    v = crud.insertarUsuario(user.text.toString(),password.text.toString())
+                    v = crud.login(user.text.toString(),password.text.toString())
                 }
             }
             else{

@@ -13,6 +13,8 @@ import java.io.IOException
 class ClaseCRUD(private val context: Context) {
     val dbHelper = DatabaseHelper.getInstance(context)
     var idusuario: Int = 0
+    var nombreUsuario: String = ""
+    var contrasenaUser: String = ""
 
     fun iniciarBD(){
         try {
@@ -306,15 +308,23 @@ class ClaseCRUD(private val context: Context) {
         try {
             db = dbHelper.readableDatabase
             val cursor = db.rawQuery(
-                "SELECT idUsuario FROM Usuario WHERE nombre = ? and contrasena = ?",
+                "SELECT idUsuario, nombre, contrasena FROM Usuario WHERE nombre = ? and contrasena = ?",
                 arrayOf(nombre, contraseña)
             )
             if (cursor.moveToFirst()) {
                 idusuario = cursor.getInt(0)
+                nombreUsuario = cursor.getString(1)
+                contrasenaUser = cursor.getString(2)
+                ClaseUsuario.iduser = idusuario
+                ClaseUsuario.nombre = nombreUsuario
+                ClaseUsuario.contras = contrasenaUser
                 v = 1
             }
             else{
                 Toast.makeText(context, "Usuario o contraseña no validos", Toast.LENGTH_SHORT).show()
+                ClaseUsuario.iduser = 0
+                ClaseUsuario.nombre = ""
+                ClaseUsuario.contras = ""
             }
             cursor.close()
         } catch (e: SQLiteException) {
