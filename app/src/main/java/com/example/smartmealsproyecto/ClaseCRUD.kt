@@ -3,6 +3,8 @@ package com.example.smartmealsproyecto
 import android.content.ContentValues
 import android.content.Context
 import android.database.SQLException
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +21,7 @@ class ClaseCRUD(private val context: Context) {
             return
         }
     }
-
+    //////////////////////////////RECETAS/////////////////////////////////////
     // ============ READ ============
     suspend fun obtenerRecetasGlobales(
         recetasList: MutableList<Receta2>,
@@ -225,5 +227,52 @@ class ClaseCRUD(private val context: Context) {
             }
             false
         }
+    }
+
+    //////////////////////////////USUARIOS/////////////////////////////////////
+    suspend fun insertarUsuario(nombre: String, contraseña: String): Int{
+        var db: SQLiteDatabase? = null
+        var resultado: Long = -1
+        var v: Int = 0
+        try {
+            db = dbHelper.readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM Usuario WHERE nombre = ?",
+                arrayOf(nombre)
+            )
+            var existe = false
+            if (cursor.moveToFirst()) {
+                existe = cursor.getInt(0) > 0
+            }
+            cursor.close()
+
+            if (existe) {
+                Toast.makeText(context, "Nombre de usuario ya existente", Toast.LENGTH_SHORT).show()
+                resultado = -2
+            } else {
+                db = dbHelper.writableDatabase
+                val values = ContentValues().apply {
+                    put("nombre", nombre)
+                    put("contrasena", contraseña)
+                    put("fotoPerfil", "")
+                    put("notificacionesActivas", false)
+                }
+
+                resultado = db.insertOrThrow("Usuario", null, values)
+                Toast.makeText(context, "Usuario Creado. Inicia Sesion", Toast.LENGTH_SHORT).show()
+                v = 1
+            }
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al insertar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
+            resultado = -1
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "${e.message}", Toast.LENGTH_LONG).show()
+            resultado = -1
+
+        } finally {
+
+        }
+        return v
     }
 }

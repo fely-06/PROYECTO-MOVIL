@@ -37,3 +37,11 @@
 
 ### _Domingo 19 de Octubre de 2025_:
 - Crear conexion a SQLite y desplegar tabla catalogo Receta (H).
+
+### _Miercoles 29 de Octubre de 2025_: 
+- Crear controlador para operaciones CRUD (H).
+- Añadir INSERT Receta (F).
+
+### _Jueves 30 de Octubre de 2025_:
+- Añadir Insert, Delete y Update a Recetas (F).
+- 
