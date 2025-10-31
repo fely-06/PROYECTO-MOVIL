@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import android.app.Activity
 import android.app.AlertDialog
 import android.widget.EditText
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 
@@ -39,11 +40,28 @@ class Perfil : Fragment() {
             intent.type = "image/*"
             startActivityForResult(intent, 1)
         }
-        binding.edituser.setOnClickListener{
-            binding.user.isEnabled = true
-        }
         binding.editcontra.setOnClickListener{
             binding.contra.isEnabled = true
+            binding.btncancel.isVisible = true
+            binding.btncrear.isVisible = true
+        }
+        binding.btncancel.setOnClickListener(){
+            binding.btncancel.isVisible = false
+            binding.btncrear.isVisible = false
+            binding.user.setText(ClaseUsuario.nombre)
+            binding.contra.setText(ClaseUsuario.contras)
+            binding.contra.isEnabled = false
+        }
+        binding.btncrear.setOnClickListener(){
+            var v: Boolean = false
+            lifecycleScope.launch {
+                v = crud.actualizarContrasenaUsuario(binding.contra.text.toString())
+                if(v==true){
+                ClaseUsuario.contras = binding.contra.text.toString()
+                }
+            }
+            binding.contra.setText(ClaseUsuario.contras)
+            binding.contra.isEnabled = false
         }
         binding.eliminarcuenta.setOnClickListener {
             AlertDialog.Builder(requireContext())

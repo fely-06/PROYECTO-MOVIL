@@ -86,17 +86,6 @@
             android:textAlignment="center"
 
             />
-        <ImageButton
-            android:id="@+id/edituser"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginLeft="10dp"
-            android:contentDescription="Cambiar Nombre de usuario"
-            android:src="@drawable/botoneditar"
-            app:tint="@color/amarillo"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="fitCenter"
-            />
 
     </LinearLayout>
 
@@ -124,6 +113,7 @@
             android:background="@drawable/editext_redondeado"
             android:hint="Contraseña"
             android:textAlignment="center"
+            android:inputType="textPassword"
             android:fontFamily="@font/ms"
             />
         <ImageButton
@@ -150,6 +140,32 @@
         android:layout_marginLeft="60dp"
         android:fontFamily="@font/ms"
         />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="550dp"
+        >
+        <Button
+            android:id="@+id/btncancel"
+            android:layout_width="150dp"
+            android:layout_height="50dp"
+            android:text="Cancelar"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            android:visibility="invisible"
+            />
+        <Button
+            android:id="@+id/btncrear"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Guardar Cambios"
+            android:backgroundTint="@color/NaranjaFuerte"
+            android:textColor="@color/white"
+            android:layout_marginStart="10dp"
+            android:visibility="invisible"
+            />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/eliminarcuenta"

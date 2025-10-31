@@ -280,6 +280,7 @@ class ClaseCRUD(private val context: Context) {
     }
     suspend fun eliminarUsuario(): Boolean = withContext(Dispatchers.IO){
         var db: SQLiteDatabase? = null
+        var v: Boolean = false
         try {
             db = dbHelper.writableDatabase
             val filasEliminadas = db.delete(
@@ -287,7 +288,7 @@ class ClaseCRUD(private val context: Context) {
                 "idUsuario = ?",
                 arrayOf(idusuario.toString())
             )
-            filasEliminadas > 0  //devuelve true
+            v = filasEliminadas > 0  //devuelve true
         } catch (e: SQLiteException) {
             Toast.makeText(context, "Error SQLite al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
 
@@ -296,11 +297,33 @@ class ClaseCRUD(private val context: Context) {
             Toast.makeText(context, "Error inesperado al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
             false
         } finally {
-            db?.close()
         }
+        return@withContext v
     }
-    suspend fun actualizarUsuario(){
-
+    suspend fun actualizarContrasenaUsuario(nuevacontraseña: String): Boolean = withContext(Dispatchers.IO){
+            var db: SQLiteDatabase? = null
+            var v: Boolean = false
+            try {
+                db = dbHelper.writableDatabase
+                val values = ContentValues().apply {
+                    put("contrasena", nuevacontraseña)
+                }
+                val filasActualizadas = db.update(
+                    "Usuario",
+                    values,
+                    "idUsuario = ?",
+                    arrayOf(idusuario.toString())
+                )
+                v = filasActualizadas > 0  // true si se actualizó
+            } catch (e: SQLiteException) {
+                Toast.makeText(context, "Error SQLite al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+                false
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error inesperado al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+                false
+            } finally {
+            }
+        return@withContext v
     }
     suspend fun login(nombre: String, contraseña: String): Int{
         var db: SQLiteDatabase? = null
@@ -337,4 +360,5 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
+
 }
