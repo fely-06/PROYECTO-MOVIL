@@ -9,6 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentHomeBinding
 import java.io.IOException
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class Home : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -48,11 +50,12 @@ class Home : Fragment() {
     }
 
     private fun loadRecetasFromDatabase() {
-        val crud = ClaseCRUD(requireContext())
-        crud.iniciarBD()
-        crud.obtenerRecetasGlobales(recetasList, recetasListOriginal)
-            //db.close()
-        adapter.notifyDataSetChanged()
+        lifecycleScope.launch {
+            val crud = ClaseCRUD(requireContext())
+            crud.iniciarBD()
+            crud.obtenerRecetasGlobales(recetasList, recetasListOriginal)
+            adapter.notifyDataSetChanged()
+        }
     }
 
     private fun setupSearch() {

@@ -56,4 +56,11 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.kotlinx.coroutines.core)
+
+    // Lifecycle + Coroutines
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
 }

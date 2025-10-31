@@ -8,7 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentNuevaRecetaBinding
-
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 class NuevaRecetaFragment : Fragment() {
     private var _binding: FragmentNuevaRecetaBinding? = null
     private val binding get() = _binding!!
@@ -106,26 +107,39 @@ class NuevaRecetaFragment : Fragment() {
             Toast.makeText(requireContext(), "Agrega al menos un ingrediente", Toast.LENGTH_SHORT).show()
             return
         }
-        try {
-        val nuevaReceta = Receta2(
-            id = RecetasTotales.nextId++,
-            idUsuario = 1,
-            nombre = nombre,
-            descripcion = descripcion,
-            tiempoPreparacion = tiempo,
-            esGlobal = false,
-            favorita = false
-        )
-            val crud = ClaseCRUD(requireContext())
-        RecetasTotales.misRecetas.add(nuevaReceta)
-        onRecetaGuardadaListener?.invoke(nuevaReceta)
-        parentFragmentManager.popBackStack()
-        } catch (e: Exception) {
-            Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
-            e.printStackTrace() //para ver error
+
+        // ✅ Usar coroutine
+        lifecycleScope.launch {
+            try {
+                val crud = ClaseCRUD(requireContext())
+                crud.iniciarBD()
+
+                val nuevaReceta = Receta2(
+                    id = 0, // SQLite auto-genera el ID
+                    idUsuario = 1, // Usar tu ID de usuario real
+                    nombre = nombre,
+                    descripcion = descripcion,
+                    tiempoPreparacion = tiempo,
+                    esGlobal = false,
+                    favorita = false
+                )
+
+                // Guardar en base de datos (se ejecuta en background)
+                val idReceta = crud.crearReceta(nuevaReceta, ingredientesList)
+
+                if (idReceta != -1L) {
+                    // Crear receta con el ID real de la BD
+                    val recetaGuardada = nuevaReceta.copy(id = idReceta.toInt())
+                    onRecetaGuardadaListener?.invoke(recetaGuardada)
+                    parentFragmentManager.popBackStack()
+                }
+
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
+                e.printStackTrace()
+            }
         }
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

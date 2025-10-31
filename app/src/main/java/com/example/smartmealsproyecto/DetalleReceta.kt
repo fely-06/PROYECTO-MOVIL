@@ -1,6 +1,5 @@
 package com.example.smartmealsproyecto
 
-import android.R
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,9 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentDetalleRecetaBinding
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 class DetalleRecetaFragment() : Fragment() {
     private var _binding: FragmentDetalleRecetaBinding? = null
     private val binding get() = _binding!!
@@ -74,55 +76,7 @@ class DetalleRecetaFragment() : Fragment() {
         mostrarModoVista()
     }
 
-    private fun cargarRecetaDesdeBD() {
-        val crud = ClaseCRUD(requireContext())
-        crud.iniciarBD()
 
-        // Cargar receta
-        val db = crud.dbHelper.readableDatabase
-        val cursorReceta = db.rawQuery(
-            "SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita " +
-                    "FROM Receta WHERE idReceta = ?",
-            arrayOf(recetaId.toString())
-        )
-
-        if (cursorReceta.moveToFirst()) {
-            val id = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idReceta"))
-            val idUsuario = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idUsuario"))
-            val nombre = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("nombre"))
-            val descripcion = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion")) ?: ""
-            val tiempo = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
-            val esGlobal = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
-            val favorita = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
-
-            receta = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
-
-            // Cargar ingredientes
-            ingredientesList.clear()
-            val cursorIng = db.rawQuery(
-                "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
-                arrayOf(recetaId.toString())
-            )
-            with(cursorIng) {
-                if (moveToFirst()) {
-                    do {
-                        val nom = getString(getColumnIndexOrThrow("nombre"))
-                        val cant = getString(getColumnIndexOrThrow("cantidad"))
-                        val uni = getString(getColumnIndexOrThrow("unidad"))
-                        ingredientesList.add(Ingrediente(null, recetaId, nom, cant, uni))
-                    } while (moveToNext())
-                }
-                close()
-            }
-        }
-        cursorReceta.close()
-        receta?.let {
-            binding.editTextNombre.setText(it.nombre)
-            binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
-            binding.editTextDescripcion.setText(it.descripcion)
-        }
-        ingredientesAdapter.notifyDataSetChanged()
-    }
     private fun setupIngredientesRecyclerView() {
         ingredientesAdapter = IngredientesAdapter(ingredientesList) { ingrediente ->
             if (modoEdicion) {
@@ -157,7 +111,8 @@ class DetalleRecetaFragment() : Fragment() {
         binding.buttonCancelar.setOnClickListener {
             if (modoEdicion) {
                 cargarRecetaDesdeBD()
-                mostrarModoVista()}
+                mostrarModoVista()
+            }
         }
 
         binding.buttonVolver.setOnClickListener {
@@ -182,11 +137,11 @@ class DetalleRecetaFragment() : Fragment() {
         binding.layoutAgregarIngrediente.visibility = View.GONE
         binding.buttonGuardar.visibility = View.GONE
         binding.buttonCancelar.visibility = View.GONE
-        if(Global == true){
+        if (Global == true) {
             binding.buttonEditar.visibility = View.GONE
             binding.buttonEliminar.visibility = View.GONE
         }
-        if(Global == false){
+        if (Global == false) {
             binding.buttonEditar.visibility = View.VISIBLE
             binding.buttonEliminar.visibility = View.VISIBLE
         }
@@ -226,16 +181,39 @@ class DetalleRecetaFragment() : Fragment() {
             binding.editTextIngredienteCantidad.text?.clear()
             binding.editTextIngredienteUnidad.text?.clear()
         } else {
-            Toast.makeText(requireContext(), "Completa todos los campos del ingrediente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Completa todos los campos del ingrediente",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
+
+    private fun mostrarDialogoEliminar() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Eliminar receta")
+            .setMessage("¿Estás seguro de que deseas eliminar esta receta?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                eliminarReceta()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun guardarCambios() {
         val nombre = binding.editTextNombre.text.toString().trim()
         val tiempoStr = binding.editTextTiempo.text.toString().trim()
         val descripcion = binding.editTextDescripcion.text.toString().trim()
 
         if (nombre.isEmpty() || tiempoStr.isEmpty()) {
-            Toast.makeText(requireContext(), "Nombre y tiempo son obligatorios", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Nombre y tiempo son obligatorios", Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
@@ -246,39 +224,118 @@ class DetalleRecetaFragment() : Fragment() {
         }
 
         if (ingredientesList.isEmpty()) {
-            Toast.makeText(requireContext(), "Debe haber al menos un ingrediente", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "Debe haber al menos un ingrediente",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
-        // Actualizar en BD
-        val crud = ClaseCRUD(requireContext())
         val recetaActualizada = receta?.copy(
             nombre = nombre,
             descripcion = descripcion.ifEmpty { null },
             tiempoPreparacion = tiempo
         ) ?: return
 
-        val exito = crud.actualizarReceta(recetaActualizada, ingredientesList)
-        if (exito) {
-            onRecetaActualizadaListener?.invoke()
-            Toast.makeText(requireContext(), "Receta actualizada", Toast.LENGTH_SHORT).show()
-            mostrarModoVista()
+        // ✅ Ejecutar en coroutine
+        lifecycleScope.launch {
+            val crud = ClaseCRUD(requireContext())
+            val exito = crud.actualizarReceta(recetaActualizada, ingredientesList)
+
+            if (exito) {
+                onRecetaActualizadaListener?.invoke()
+                mostrarModoVista()
+            }
         }
     }
-    private fun mostrarDialogoEliminar() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Eliminar receta")
-            .setMessage("¿Estás seguro de que deseas eliminar esta receta?")
-            .setPositiveButton("Eliminar") { _, _ ->
+
+    // Ejemplo en eliminarReceta():
+    private fun eliminarReceta() {
+        lifecycleScope.launch {
+            val crud = ClaseCRUD(requireContext())
+            crud.iniciarBD()
+
+            val exito = crud.eliminarReceta(recetaId)
+
+            if (exito) {
                 onRecetaEliminadaListener?.invoke(recetaId)
                 parentFragmentManager.popBackStack()
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun cargarRecetaDesdeBD() {
+        lifecycleScope.launch {
+            // Variables para almacenar los datos cargados
+            var recetaCargada: Receta2? = null
+            val ingredientesTemp = mutableListOf<Ingrediente>()
+
+            // Cargar datos en background
+            withContext(Dispatchers.IO) {
+                val crud = ClaseCRUD(requireContext())
+                crud.iniciarBD()
+
+                val db = crud.dbHelper.readableDatabase
+
+                // Cargar receta
+                val cursorReceta = db.rawQuery(
+                    "SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita " +
+                            "FROM Receta WHERE idReceta = ?",
+                    arrayOf(recetaId.toString())
+                )
+
+                if (cursorReceta.moveToFirst()) {
+                    val id = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idReceta"))
+                    val idUsuario =
+                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idUsuario"))
+                    val nombre =
+                        cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("nombre"))
+                    val descripcion =
+                        cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion"))
+                            ?: ""
+                    val tiempo =
+                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
+                    val esGlobal =
+                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
+                    val favorita =
+                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
+
+                    recetaCargada =
+                        Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
+
+                    // Cargar ingredientes
+                    val cursorIng = db.rawQuery(
+                        "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
+                        arrayOf(recetaId.toString())
+                    )
+
+                    with(cursorIng) {
+                        if (moveToFirst()) {
+                            do {
+                                val nom = getString(getColumnIndexOrThrow("nombre"))
+                                val cant = getString(getColumnIndexOrThrow("cantidad"))
+                                val uni = getString(getColumnIndexOrThrow("unidad"))
+                                ingredientesTemp.add(Ingrediente(nom, cant, uni))
+                            } while (moveToNext())
+                        }
+                        close()
+                    }
+                }
+                cursorReceta.close()
+            }
+
+            // Actualizar UI en el hilo principal (automáticamente después del withContext)
+            receta = recetaCargada
+            ingredientesList.clear()
+            ingredientesList.addAll(ingredientesTemp)
+
+            receta?.let {
+                binding.editTextNombre.setText(it.nombre)
+                binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
+                binding.editTextDescripcion.setText(it.descripcion)
+            }
+            ingredientesAdapter.notifyDataSetChanged()
+        }
     }
 }
