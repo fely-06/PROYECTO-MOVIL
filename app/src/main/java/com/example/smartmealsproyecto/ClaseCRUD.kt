@@ -278,7 +278,7 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
-    suspend fun eliminarUsuario(): Boolean = withContext(Dispatchers.IO){
+    suspend fun eliminarUsuario(): Boolean{
         var db: SQLiteDatabase? = null
         var v: Boolean = false
         try {
@@ -286,19 +286,21 @@ class ClaseCRUD(private val context: Context) {
             val filasEliminadas = db.delete(
                 "Usuario",
                 "idUsuario = ?",
-                arrayOf(idusuario.toString())
+                arrayOf(ClaseUsuario.iduser.toString())
             )
-            v = filasEliminadas > 0  //devuelve true
+            if(filasEliminadas > 0)  //devuelve true
+            {
+                v = true
+            }
         } catch (e: SQLiteException) {
             Toast.makeText(context, "Error SQLite al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
-
             false
         } catch (e: Exception) {
             Toast.makeText(context, "Error inesperado al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
             false
         } finally {
         }
-        return@withContext v
+        return v
     }
     suspend fun actualizarContrasenaUsuario(nuevacontraseña: String): Boolean = withContext(Dispatchers.IO){
             var db: SQLiteDatabase? = null
@@ -312,7 +314,7 @@ class ClaseCRUD(private val context: Context) {
                     "Usuario",
                     values,
                     "idUsuario = ?",
-                    arrayOf(idusuario.toString())
+                    arrayOf(ClaseUsuario.iduser.toString())
                 )
                 v = filasActualizadas > 0  // true si se actualizó
             } catch (e: SQLiteException) {

@@ -54,25 +54,29 @@ class Perfil : Fragment() {
         }
         binding.btncrear.setOnClickListener(){
             var v: Boolean = false
+            var c: String =binding.contra.text.toString()
             lifecycleScope.launch {
-                v = crud.actualizarContrasenaUsuario(binding.contra.text.toString())
+                v = crud.actualizarContrasenaUsuario(c)
                 if(v==true){
-                ClaseUsuario.contras = binding.contra.text.toString()
+                ClaseUsuario.contras = c
                 }
             }
-            binding.contra.setText(ClaseUsuario.contras)
+            binding.contra.setText(c)
             binding.contra.isEnabled = false
+            binding.btncancel.isVisible = false
+            binding.btncrear.isVisible = false
         }
         binding.eliminarcuenta.setOnClickListener {
+            var e: Boolean = false
             AlertDialog.Builder(requireContext())
                 .setTitle("Advertencia")
                 .setMessage("¿Estás seguro de quieres elimiar tu cuenta?")
                 .setPositiveButton("Eliminar") { _, _ ->
-                    var elimino: Boolean = false
+
                     lifecycleScope.launch {
-                    elimino = crud.eliminarUsuario()
+                        e = crud.eliminarUsuario()
                     }
-                    if(elimino == true) {
+                    if(e == true) {
                         val intent = Intent(requireContext(), MainActivity::class.java)
                         //limpia actividades
                         intent.flags =
