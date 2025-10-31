@@ -23,6 +23,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
+        android:id="@+id/usuario"
         android:layout_width="320dp"
         android:layout_height="50dp"
         android:background="@drawable/edittextmod"
@@ -36,6 +37,7 @@
         android:imeOptions="actionNext"/>
 
     <EditText
+        android:id="@+id/passw"
         android:layout_width="320dp"
         android:layout_height="50dp"
         android:background="@drawable/edittextmod"

@@ -44,4 +44,4 @@
 
 ### _Jueves 30 de Octubre de 2025_:
 - Añadir Insert, Delete y Update a Recetas (F).
-- 
+- Añadir Insert a tabla Usuarios (H).

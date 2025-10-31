@@ -12,6 +12,7 @@ import java.io.IOException
 
 class ClaseCRUD(private val context: Context) {
     val dbHelper = DatabaseHelper.getInstance(context)
+    var idusuario: Int = 0
 
     fun iniciarBD(){
         try {
@@ -270,6 +271,39 @@ class ClaseCRUD(private val context: Context) {
             Toast.makeText(context, "${e.message}", Toast.LENGTH_LONG).show()
             resultado = -1
 
+        } finally {
+
+        }
+        return v
+    }
+    suspend fun eliminarUsuario(){
+
+    }
+    suspend fun actualizarUsuario(){
+
+    }
+    suspend fun login(nombre: String, contraseña: String): Int{
+        var db: SQLiteDatabase? = null
+        var v: Int = 0
+        try {
+            db = dbHelper.readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT idUsuario FROM Usuario WHERE nombre = ? and contrasena = ?",
+                arrayOf(nombre, contraseña)
+            )
+            if (cursor.moveToFirst()) {
+                idusuario = cursor.getInt(0)
+                v = 1
+            }
+            else{
+                Toast.makeText(context, "Usuario o contraseña no validos", Toast.LENGTH_SHORT).show()
+            }
+            cursor.close()
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al buscar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "${e.message}", Toast.LENGTH_LONG).show()
         } finally {
 
         }
