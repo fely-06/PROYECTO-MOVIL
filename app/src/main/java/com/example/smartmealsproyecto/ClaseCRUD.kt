@@ -276,8 +276,26 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
-    suspend fun eliminarUsuario(){
+    suspend fun eliminarUsuario(): Boolean = withContext(Dispatchers.IO){
+        var db: SQLiteDatabase? = null
+        try {
+            db = dbHelper.writableDatabase
+            val filasEliminadas = db.delete(
+                "Usuario",
+                "idUsuario = ?",
+                arrayOf(idusuario.toString())
+            )
+            filasEliminadas > 0  //devuelve true
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
 
+            false
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error inesperado al eliminar usuario: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } finally {
+            db?.close()
+        }
     }
     suspend fun actualizarUsuario(){
 

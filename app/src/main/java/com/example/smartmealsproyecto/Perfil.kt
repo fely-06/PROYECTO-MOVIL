@@ -11,6 +11,8 @@ import android.provider.MediaStore
 import android.app.Activity
 import android.app.AlertDialog
 import android.widget.EditText
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class Perfil : Fragment() {
     private var _binding: FragmentPerfilBinding ? = null
@@ -44,12 +46,20 @@ class Perfil : Fragment() {
                 .setTitle("Advertencia")
                 .setMessage("¿Estás seguro de quieres elimiar tu cuenta?")
                 .setPositiveButton("Eliminar") { _, _ ->
-                    val intent = Intent(requireContext(), MainActivity::class.java)
-                    //limpia actividades
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-
-                    startActivity(intent)
-                    requireActivity().finish() // termina activy_Principal
+                    val crud = ClaseCRUD(requireContext())
+                    crud.iniciarBD()
+                    var elimino: Boolean = false
+                    lifecycleScope.launch {
+                    elimino = crud.eliminarUsuario()
+                    }
+                    if(elimino == true) {
+                        val intent = Intent(requireContext(), MainActivity::class.java)
+                        //limpia actividades
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                        requireActivity().finish() // termina activy_Principal
+                    }
                 }
                 .setNegativeButton("Cancelar", null)
                 .show()
