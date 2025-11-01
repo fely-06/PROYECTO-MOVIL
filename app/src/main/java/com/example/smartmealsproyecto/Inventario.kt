@@ -22,7 +22,6 @@ class Inventario : Fragment() {
     private lateinit var fab: ImageButton
     private val ProductList = mutableListOf<Producto>()
     private var nextId = 1
-    private val crud = ClaseCRUD(requireContext())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,21 +33,23 @@ class Inventario : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        val crud = ClaseCRUD(requireContext())
         recyclerView = view.findViewById(R.id.recyclerViewProductos)
         fab = view.findViewById(R.id.fabAddProducto)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = ProductoAdap(ProductList, ProductClick = { product -> eliminarProd(product) })
+        crud.iniciarBD()
         lifecycleScope.launch {
             crud.consultarInventario(ProductList)
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = ProductoAdap(ProductList, ProductClick = { product -> eliminarProd(product) })
+            recyclerView.adapter?.notifyDataSetChanged()
         }
-
         fab.setOnClickListener {
             showMenu(it)
         }
     }
 
     private fun eliminarProd(producto: Producto){
+        val crud = ClaseCRUD(requireContext())
         var e: Boolean = false
         AlertDialog.Builder(requireContext())
             .setTitle("Advertencia")
@@ -57,11 +58,13 @@ class Inventario : Fragment() {
 
                 lifecycleScope.launch {
                     e = crud.eliminarProducto(producto.Id)
+                    if(e == true) {
+                        crud.consultarInventario(ProductList)
+                        recyclerView.adapter?.notifyDataSetChanged()
+                        Toast.makeText(requireContext(), "Producto eliminado", Toast.LENGTH_SHORT).show()
+                    }
                 }
-                if(e == true) {
-                    recyclerView.adapter?.notifyDataSetChanged()
-                    Toast.makeText(requireContext(), "Producto eliminado", Toast.LENGTH_SHORT).show()
-                }
+
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -79,14 +82,16 @@ class Inventario : Fragment() {
 
                 }
                 "Agregar Manualmente" -> {
-                    val dialog = AddProductDialog(ProductList)
+                    val dialog = AddProductDialog(ProductList,{
+                        recyclerView.adapter?.notifyDataSetChanged()
+                    })
                     dialog.show(childFragmentManager, "AddProductDialog")
-                    recyclerView.adapter?.notifyDataSetChanged()
                 }
             }
             true
         }
         popup.show()
+
     }
 
     override fun onDestroyView() {

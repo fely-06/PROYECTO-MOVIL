@@ -458,14 +458,14 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
-    suspend fun actualizarProducto(idExistente: Int, unidad: String, cantidad: Double): Boolean = withContext(Dispatchers.IO){
+    suspend fun actualizarProducto(idExistente: Int, unidad: String, cantidad: Double,cantidadA: Double ): Boolean{
         var db: SQLiteDatabase? = null
         var v: Boolean = false
         try {
             db = dbHelper.writableDatabase
             val values = ContentValues().apply {
                 put("unidad", unidad)
-                put("cantidad", cantidad)
+                put("cantidad", cantidad + cantidadA)
             }
             val filasActualizadas = db.update(
                 "Inventario",
@@ -482,6 +482,6 @@ class ClaseCRUD(private val context: Context) {
             false
         } finally {
         }
-        return@withContext v
+        return v
     }
 }

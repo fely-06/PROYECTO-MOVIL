@@ -13,10 +13,13 @@ import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.AdapterView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+
 
 class AddProductDialog(
     private val existingProducts: MutableList<Producto>,
+    private val actualizProd: (MutableList<Producto>) -> Unit
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -57,7 +60,7 @@ class AddProductDialog(
         btnAgregar.setOnClickListener {
             var seagrego: Int = 0
             var semodifico: Boolean = false
-            val nombre = autoComplete.text.toString().trim()
+            val nombre = autoComplete.text.toString()
             val cantidadStr = cantidadEt.text.toString().trim()
             val Unidad = unidadEt.text.toString().trim()
 
@@ -76,20 +79,19 @@ class AddProductDialog(
             val existente = existingProducts.find { it.nombre.equals(nombre, ignoreCase = true) }
                 if (existente != null) {
                     lifecycleScope.launch {
-                        semodifico = crud.actualizarProducto(existente.Id, existente.unidad, existente.cantidad)
-                    }
-                    if(semodifico == true){
-                        lifecycleScope.launch {
-                            crud.consultarInventario(existingProducts)
+                        semodifico = crud.actualizarProducto(existente.Id, existente.unidad, cantidadEt.text.toString().toDouble(), existente.cantidad)
+                        if(semodifico == true){
+                                crud.consultarInventario(existingProducts)
+                                actualizProd(existingProducts)
                         }
                     }
+
                 } else {
                     lifecycleScope.launch {
                         seagrego = crud.insertarProducto(autoComplete.text.toString(), unidadEt.text.toString(), cantidadEt.text.toString().toDouble(), "")
-                    }
-                    if(seagrego == 1){
-                        lifecycleScope.launch {
-                            crud.consultarInventario(existingProducts)
+                        if(seagrego == 1){
+                                crud.consultarInventario(existingProducts)
+                            actualizProd(existingProducts)
                         }
                     }
             }
