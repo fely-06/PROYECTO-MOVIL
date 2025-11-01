@@ -49,3 +49,5 @@
 ### _Viernes 31 de Octubre de 2025_:
 - Añadir funcion Login (H).
 - Añadir DELETE a Usuarios(H).
+- Añadir UPDATE a Usuarios(H).
+- Hacer CRUD para Inventario (H).

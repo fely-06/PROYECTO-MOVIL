@@ -12,15 +12,15 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.AdapterView
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class AddProductDialog(
-    private val existingProducts: List<Producto>,
-    private val onProductAdded: (Producto) -> Unit
+    private val existingProducts: MutableList<Producto>,
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = LayoutInflater.from(context).inflate(R.layout.add_product, null)
-        //val nombreEt = view.findViewById<EditText>(R.id.editTextNombre)
         val autoComplete = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteProducto)
         val cantidadEt = view.findViewById<EditText>(R.id.editTextCantidad)
         val unidadEt = view.findViewById<EditText>(R.id.editTextUnidad)
@@ -55,7 +55,8 @@ class AddProductDialog(
         }
 
         btnAgregar.setOnClickListener {
-
+            var seagrego: Int = 0
+            var semodifico: Boolean = false
             val nombre = autoComplete.text.toString().trim()
             val cantidadStr = cantidadEt.text.toString().trim()
             val Unidad = unidadEt.text.toString().trim()
@@ -70,22 +71,27 @@ class AddProductDialog(
                 Toast.makeText(context, "Cantidad inválida", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
+            val crud = ClaseCRUD(requireContext())
+            crud.iniciarBD()
             val existente = existingProducts.find { it.nombre.equals(nombre, ignoreCase = true) }
                 if (existente != null) {
-
-                    val prod = Producto(
-                        existente.Id,
-                        existente.nombre,
-                        existente.cantidad + cantidad,
-                        Unidad
-                    )
-                    onProductAdded(prod)
-
+                    lifecycleScope.launch {
+                        semodifico = crud.actualizarProducto(existente.Id, existente.unidad, existente.cantidad)
+                    }
+                    if(semodifico == true){
+                        lifecycleScope.launch {
+                            crud.consultarInventario(existingProducts)
+                        }
+                    }
                 } else {
-                val nuevoId = (existingProducts.maxByOrNull { it.Id }?.Id ?: 0) + 1
-                val prod = Producto(nuevoId, nombre, cantidad, Unidad)
-                    onProductAdded(prod)
+                    lifecycleScope.launch {
+                        seagrego = crud.insertarProducto(autoComplete.text.toString(), unidadEt.text.toString(), cantidadEt.text.toString().toDouble(), "")
+                    }
+                    if(seagrego == 1){
+                        lifecycleScope.launch {
+                            crud.consultarInventario(existingProducts)
+                        }
+                    }
             }
             dialog.dismiss()
         }

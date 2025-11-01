@@ -26,9 +26,7 @@ class ClaseCRUD(private val context: Context) {
     }
     //////////////////////////////RECETAS/////////////////////////////////////
     // ============ READ ============
-    suspend fun obtenerRecetasGlobales(
-        recetasList: MutableList<Receta2>,
-        recetasListOriginal: MutableList<Receta2>
+    suspend fun obtenerRecetasGlobales(recetasList: MutableList<Receta2>, recetasListOriginal: MutableList<Receta2>
     ) = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery(
@@ -363,4 +361,127 @@ class ClaseCRUD(private val context: Context) {
         return v
     }
 
+    ///////////////////////////INVENTARIO/PRODUCTOS///////////////////////////////////
+    suspend fun consultarInventario(productosUser: MutableList<Producto>){
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT idProducto, nombre, cantidad, unidad, codigoBarras FROM Inventario WHERE idUsuario = ?",
+            arrayOf(ClaseUsuario.iduser.toString())
+        )
+
+        val tempList = mutableListOf<Producto>()
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val id = getInt(getColumnIndexOrThrow("idProducto"))
+                    val nombre = getString(getColumnIndexOrThrow("nombre"))
+                    val cantidad = getDouble(getColumnIndexOrThrow("cantidad"))
+                    val unidad = getString(getColumnIndexOrThrow("unidad"))
+                    val codigoBarras = getString(getColumnIndexOrThrow("codigoBarras"))?: ""
+                    tempList.add(Producto(id, nombre, cantidad, unidad, codigoBarras))
+                } while (cursor.moveToNext())
+            }
+        }
+        cursor.close()
+        withContext(Dispatchers.Main) {
+            productosUser.clear()
+            productosUser.addAll(tempList)
+        }
+    }
+
+    suspend fun eliminarProducto(idProd: Int): Boolean{
+        var db: SQLiteDatabase? = null
+        var v: Boolean = false
+        try {
+            db = dbHelper.writableDatabase
+            val filasEliminadas = db.delete(
+                "Inventario",
+                "idProducto = ?",
+                arrayOf(idProd.toString())
+            )
+            if(filasEliminadas > 0)  //devuelve true
+            {
+                v = true
+            }
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al eliminar producto: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error inesperado al eliminar producto: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } finally {
+        }
+        return v
+    }
+
+    suspend fun insertarProducto(nombre: String, unidad: String, cantidad: Double, codBarras: String): Int{
+        var db: SQLiteDatabase? = null
+        var resultado: Long = -1
+        var v: Int = 0
+        try {
+            db = dbHelper.readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT COUNT(*) FROM Inventario WHERE nombre = ?",
+                arrayOf(nombre)
+            )
+            var existe = false
+            if (cursor.moveToFirst()) {
+                existe = cursor.getInt(0) > 0
+            }
+            cursor.close()
+
+            if (existe == false) {
+                db = dbHelper.writableDatabase
+                val values = ContentValues().apply {
+                    put("idUsuario", ClaseUsuario.iduser)
+                    put("nombre", nombre)
+                    put("cantidad", cantidad)
+                    put("unidad", unidad)
+                    put("codigoBarras", codBarras)
+                }
+
+                resultado = db.insertOrThrow("Inventario", null, values)
+                Toast.makeText(context, "Producto Guardado", Toast.LENGTH_SHORT).show()
+                v = 1
+            }
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al guardar producto: ${e.message}", Toast.LENGTH_SHORT).show()
+            resultado = -1
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "${e.message}", Toast.LENGTH_LONG).show()
+            resultado = -1
+
+        } finally {
+
+        }
+        return v
+    }
+    suspend fun actualizarProducto(idExistente: Int, unidad: String, cantidad: Double): Boolean = withContext(Dispatchers.IO){
+        var db: SQLiteDatabase? = null
+        var v: Boolean = false
+        try {
+            db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("unidad", unidad)
+                put("cantidad", cantidad)
+            }
+            val filasActualizadas = db.update(
+                "Inventario",
+                values,
+                "idProducto = ?",
+                arrayOf(idExistente.toString())
+            )
+            v = filasActualizadas > 0  // true si se actualizó
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error inesperado al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } finally {
+        }
+        return@withContext v
+    }
 }

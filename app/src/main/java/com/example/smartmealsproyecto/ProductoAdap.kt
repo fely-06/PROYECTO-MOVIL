@@ -6,12 +6,20 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class ProductoAdap(private val productos: List<Producto>) :
+class ProductoAdap(private val productos: List<Producto>, private val ProductClick: (Producto) -> Unit) :
     RecyclerView.Adapter<ProductoAdap.ProductoViewHolder>() {
 
     inner class ProductoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvNombre = itemView.findViewById<TextView>(R.id.tvNombreProducto)
         val tvCantidad = itemView.findViewById<TextView>(R.id.tvCantidadDisponible)
+        init {
+            itemView.setOnClickListener() {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    ProductClick(productos[position])
+                }
+            }
+        }
 
     }
 
