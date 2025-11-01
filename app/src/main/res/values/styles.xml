@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Estilo para días de la semana -->
+    <style name="WeekDayTextAppearance" parent="android:TextAppearance.DeviceDefault.Small">
+        <item name="android:textColor">@color/NaranjaFuerte</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">@color/NaranjaFuerte</item>
+    </style>
+
+    <!-- Estilo para fechas -->
+    <style name="DateTextAppearance" parent="android:TextAppearance.DeviceDefault">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- Tema personalizado para el CalendarView -->
+    <style name="CustomCalendarTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorAccent">#FF9800</item> <!-- naranja -->
+        <item name="android:dateTextAppearance">@style/DateTextAppearance</item>
+        <item name="android:weekDayTextAppearance">@style/WeekDayTextAppearance</item>
+    </style>
+</resources>

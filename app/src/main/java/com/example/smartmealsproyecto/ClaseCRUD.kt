@@ -484,4 +484,9 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
+
+    /////////////////////////////AGENDA/DETALLE_AGENDA////////////////////////////////////
+    suspend fun consultarDetalleAgenda(){
+
+    }
 }

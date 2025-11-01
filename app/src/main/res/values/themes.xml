@@ -5,5 +5,7 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.SMARTMEALSProyecto" parent="Base.Theme.SMARTMEALSProyecto" />
+    <style name="Theme.SMARTMEALSProyecto" parent="Base.Theme.SMARTMEALSProyecto">
+
+    </style>
 </resources>
