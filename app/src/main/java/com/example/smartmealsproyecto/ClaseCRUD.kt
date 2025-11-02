@@ -538,4 +538,31 @@ class ClaseCRUD(private val context: Context) {
         }
         return v
     }
+
+    suspend fun actualizarDetalleAgenda(idDetalleAgenda: Int, hora: String, notas: String): Boolean{
+        var db: SQLiteDatabase? = null
+        var v: Boolean = false
+        try {
+            db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("hora", hora)
+                put("notas", notas)
+            }
+            val filasActualizadas = db.update(
+                "AgendaReceta",
+                values,
+                "idAgendaReceta = ?",
+                arrayOf(idDetalleAgenda.toString())
+            )
+            v = filasActualizadas > 0  // true si se actualizó
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error inesperado al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } finally {
+        }
+        return v
+    }
 }

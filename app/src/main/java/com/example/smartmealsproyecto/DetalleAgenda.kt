@@ -39,7 +39,7 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
             RecetasList.clear()
             RecetasList.addAll(crud.consultarDetalleAgendaPorDia(fechaSelec))
             binding.recyclerViewRecetasD.layoutManager = LinearLayoutManager(requireContext())
-            binding.recyclerViewRecetasD.adapter = DetalleAgendaAdap("Desayuno",RecetasList) { receta -> eliminarRec(receta) }
+            binding.recyclerViewRecetasD.adapter = DetalleAgendaAdap("Desayuno",RecetasList, { receta -> eliminarRec(receta) },{ receta -> actualizarRec(receta)})
         }
         binding.agregaRec.setOnClickListener {
 
@@ -66,6 +66,13 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
             }
             .setNegativeButton("Cancelar", null)
             .show()
+    }
+
+    private fun actualizarRec(receta: ClassDetAgenda){
+        val dialog = ActualizarDetalleAgendaDialog(receta,RecetasList,fechaSelec,{
+            binding.recyclerViewRecetasD.adapter?.notifyDataSetChanged()
+        })
+        dialog.show(childFragmentManager, "AddProductDialog")
     }
 
     override fun onDestroyView() {

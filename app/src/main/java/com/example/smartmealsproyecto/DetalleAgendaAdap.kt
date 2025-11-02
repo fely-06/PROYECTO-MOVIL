@@ -4,9 +4,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class DetalleAgendaAdap(private val tipo: String,private val recetas: List<ClassDetAgenda>, private val RecetaClick: (ClassDetAgenda) -> Unit) :
+class DetalleAgendaAdap(private val tipo: String,private val recetas: List<ClassDetAgenda>, private val RecetaClick: (ClassDetAgenda) -> Unit,private val RecetaLongClick: (ClassDetAgenda) -> Unit) :
     RecyclerView.Adapter<DetalleAgendaAdap.DetalleAgendaViewHolder>() {
 
     inner class DetalleAgendaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -18,8 +19,15 @@ class DetalleAgendaAdap(private val tipo: String,private val recetas: List<Class
             itemView.setOnClickListener() {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
+                    RecetaLongClick(recetas[position])
+                }
+            }
+            itemView.setOnLongClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
                     RecetaClick(recetas[position])
                 }
+                return@setOnLongClickListener true
             }
         }
 

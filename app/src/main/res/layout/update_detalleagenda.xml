@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/AmarilloClaro"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="@color/NaranjaFuerte"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Editar Plan"
+            android:textStyle="bold"
+            android:textAlignment="textEnd"
+            android:textColor="@color/white"
+            android:textSize="16dp"
+            />
+
+    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Receta"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/recetanombre"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="receta"
+        android:enabled="false"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/editext_redondeado"
+        android:paddingStart="20dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Notas"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+    <EditText
+        android:id="@+id/notas"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="notas"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/editext_redondeado"
+        android:paddingStart="20dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hora"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp" />
+            <TimePicker
+                android:id="@+id/timePic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:timePickerMode="spinner"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="20dp">
+            <Button
+                android:id="@+id/btncancelar"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="Cancelar"
+                android:backgroundTint="@color/NaranjaFuerte"
+                android:textColor="@color/white"
+                android:layout_marginTop="50dp"
+                />
+            <Button
+                android:id="@+id/btnguardar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Guardar"
+                android:backgroundTint="@color/NaranjaFuerte"
+                android:textColor="@color/white"
+                android:layout_marginTop="20dp"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>
