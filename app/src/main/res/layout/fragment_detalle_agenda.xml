@@ -16,13 +16,19 @@
         android:gravity="center"
         android:layout_marginBottom="16dp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="• Lechuga romana\n• Queso parmesano\n• Pollo entero"
-        android:textSize="16sp"
-        android:textColor="@color/black" />
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="365dp"
+        android:layout_height="300dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="Explora Productos">
 
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewRecetas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+    </ScrollView>
     <Button
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -31,4 +37,12 @@
         android:backgroundTint="@color/NaranjaFuerte"
         android:textColor="@color/white"
         android:onClick="dismiss" />
+    <Button
+        android:id="@+id/agregaRec"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="10dp"
+        android:text="Agregar Receta"
+        android:backgroundTint="@color/NaranjaFuerte"
+        android:textColor="@color/white" />
 </LinearLayout>

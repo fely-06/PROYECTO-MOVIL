@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.smartmealsproyecto.databinding.FragmentCalendarioBinding
 import java.util.*
@@ -43,9 +44,22 @@ class Calendario : Fragment() {
         }
 
         binding.calend.setOnDateChangeListener {_, year, month, dayOfMonth ->
-            val fechaSelect = "$dayOfMonth/${month+1}/$year"
-            val bottomSheet = DetalleAgenda()
+            var fechaselect: String
+            if(dayOfMonth<10){
+                fechaselect = "$year-${month+1}-0$dayOfMonth"
+            }
+            else if(month+1<10){
+                fechaselect = "$year-0${month+1}-$dayOfMonth"
+            }
+            else if(dayOfMonth<10&&month+1<10){
+                fechaselect = "$year-0${month+1}-0$dayOfMonth"
+            }
+            else{
+                fechaselect = "$year-${month+1}-$dayOfMonth"
+            }
+            val bottomSheet = DetalleAgenda(fechaselect)
             bottomSheet.show(parentFragmentManager, "detalle_adenda")
+
         }
     }
 

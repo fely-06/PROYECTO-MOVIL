@@ -486,7 +486,31 @@ class ClaseCRUD(private val context: Context) {
     }
 
     /////////////////////////////AGENDA/DETALLE_AGENDA////////////////////////////////////
-    suspend fun consultarDetalleAgenda(){
+    suspend fun consultarDetalleAgendaPorDia(fecha: String): MutableList<ClassDetAgenda>{
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT ar.idAgendaReceta, a.tipoComida,r.nombre,ar.hora,ar.notas FROM Agenda a " +
+                    "INNER JOIN AgendaReceta ar ON a.idAgenda = ar.idAgenda INNER JOIN Receta r ON ar.idReceta = r.idReceta " +
+                    "WHERE a.idUsuario = ? AND a.fecha = ? " +
+                    "ORDER BY ar.hora",
+            arrayOf(ClaseUsuario.iduser.toString(), fecha)
+        )
 
+        val tempList = mutableListOf<ClassDetAgenda>()
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val id = getInt(getColumnIndexOrThrow("idAgendaReceta"))
+                    val tipoC = getString(getColumnIndexOrThrow("tipoComida"))
+                    val nombre = getString(getColumnIndexOrThrow("nombre"))
+                    val hora = getString(getColumnIndexOrThrow("hora"))
+                    val notas = getString(getColumnIndexOrThrow("notas"))?: ""
+                    tempList.add(ClassDetAgenda(id, tipoC, nombre, hora, notas))
+                } while (cursor.moveToNext())
+            }
+        }
+        cursor.close()
+        return tempList
     }
 }
