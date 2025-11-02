@@ -6,13 +6,14 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class DetalleAgendaAdap(private val recetas: List<ClassDetAgenda>, private val RecetaClick: (ClassDetAgenda) -> Unit) :
+class DetalleAgendaAdap(private val tipo: String,private val recetas: List<ClassDetAgenda>, private val RecetaClick: (ClassDetAgenda) -> Unit) :
     RecyclerView.Adapter<DetalleAgendaAdap.DetalleAgendaViewHolder>() {
 
     inner class DetalleAgendaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvNombre = itemView.findViewById<TextView>(R.id.tvNombreRec)
         val tvNotas = itemView.findViewById<TextView>(R.id.notas)
         val hora = itemView.findViewById<TextView>(R.id.hora)
+
         init {
             itemView.setOnClickListener() {
                 val position = adapterPosition

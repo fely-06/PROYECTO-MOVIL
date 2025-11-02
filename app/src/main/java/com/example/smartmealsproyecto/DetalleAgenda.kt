@@ -34,16 +34,12 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
         super.onViewCreated(view, savedInstanceState)
         val crud = ClaseCRUD(requireContext())
         crud.iniciarBD()
-
+        binding.fechadia.text = fechaSelec
         lifecycleScope.launch {
             RecetasList.clear()
             RecetasList.addAll(crud.consultarDetalleAgendaPorDia(fechaSelec))
-            binding.recyclerViewRecetas.layoutManager = LinearLayoutManager(requireContext())
-            binding.recyclerViewRecetas.adapter = DetalleAgendaAdap(
-                RecetasList
-            ) { receta ->
-                eliminarRec(receta)
-            }
+            binding.recyclerViewRecetasD.layoutManager = LinearLayoutManager(requireContext())
+            binding.recyclerViewRecetasD.adapter = DetalleAgendaAdap("Desayuno",RecetasList) { receta -> eliminarRec(receta) }
         }
         binding.agregaRec.setOnClickListener {
 

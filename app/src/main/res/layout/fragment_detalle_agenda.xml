@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/AmarilloClaro"
+    android:background="@color/NaranjaFuerte"
     android:padding="24dp">
 
     <TextView
@@ -12,37 +12,39 @@
         android:text="PLAN DEL DIA"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/NaranjaFuerte"
+        android:textColor="@color/white"
         android:gravity="center"
-        android:layout_marginBottom="16dp" />
-
+         />
+    <TextView
+        android:id="@+id/fechadia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="fecha"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:gravity="center" />
     <ScrollView
-        android:id="@+id/scroll"
+        android:id="@+id/scrollDes"
         android:layout_width="365dp"
         android:layout_height="300dp"
-        android:layout_marginTop="20dp"
         android:contentDescription="Explora Productos">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerViewRecetas"
+            android:id="@+id/recyclerViewRecetasD"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false" />
     </ScrollView>
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        android:text="Cerrar"
-        android:backgroundTint="@color/NaranjaFuerte"
-        android:textColor="@color/white"
-        android:onClick="dismiss" />
+
     <Button
         android:id="@+id/agregaRec"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="50dp"
         android:layout_marginTop="10dp"
         android:text="Agregar Receta"
-        android:backgroundTint="@color/NaranjaFuerte"
-        android:textColor="@color/white" />
+        android:textStyle="bold"
+        android:backgroundTint="@color/AmarilloClaro"
+        android:textColor="@color/NaranjaFuerte" />
+
 </LinearLayout>

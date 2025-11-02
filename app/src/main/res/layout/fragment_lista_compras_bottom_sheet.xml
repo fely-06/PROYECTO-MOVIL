@@ -23,12 +23,4 @@
         android:textSize="16sp"
         android:textColor="@color/black" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="24dp"
-        android:text="Cerrar"
-        android:backgroundTint="@color/NaranjaFuerte"
-        android:textColor="@color/white"
-        android:onClick="dismiss" />
 </LinearLayout>
