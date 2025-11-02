@@ -46,25 +46,26 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
         }
     }
     private fun eliminarRec(receta: ClassDetAgenda){
-        /*val crud = ClaseCRUD(requireContext())
+        val crud = ClaseCRUD(requireContext())
         var e: Boolean = false
         AlertDialog.Builder(requireContext())
             .setTitle("Advertencia")
-            .setMessage("¿Deseas eliminar este producto de tu lista??")
+            .setMessage("¿Deseas eliminar esta receta de tu lista??")
             .setPositiveButton("Eliminar") { _, _ ->
 
                 lifecycleScope.launch {
-                    e = crud.eliminarProducto(producto.Id)
+                    e = crud.eliminarRecetaDeAgenda(receta.id)
                     if(e == true) {
-                        crud.consultarInventario(ProductList)
-                        recyclerView.adapter?.notifyDataSetChanged()
-                        Toast.makeText(requireContext(), "Producto eliminado", Toast.LENGTH_SHORT).show()
+                        RecetasList.clear()
+                        RecetasList.addAll(crud.consultarDetalleAgendaPorDia(fechaSelec))
+                        binding.recyclerViewRecetasD.adapter?.notifyDataSetChanged()
+                        Toast.makeText(requireContext(), "Receta eliminada", Toast.LENGTH_SHORT).show()
                     }
                 }
 
             }
             .setNegativeButton("Cancelar", null)
-            .show() */
+            .show()
     }
 
     override fun onDestroyView() {

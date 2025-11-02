@@ -513,4 +513,29 @@ class ClaseCRUD(private val context: Context) {
         cursor.close()
         return tempList
     }
+
+    suspend fun eliminarRecetaDeAgenda(idDetalleAgenda: Int): Boolean{
+        var db: SQLiteDatabase? = null
+        var v: Boolean = false
+        try {
+            db = dbHelper.writableDatabase
+            val filasEliminadas = db.delete(
+                "AgendaReceta",
+                "idAgendaReceta = ?",
+                arrayOf(idDetalleAgenda.toString())
+            )
+            if(filasEliminadas > 0)  //devuelve true
+            {
+                v = true
+            }
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al eliminar receta del plan: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } catch (e: Exception) {
+            Toast.makeText(context, "Error inesperado al eliminar receta del plan: ${e.message}", Toast.LENGTH_SHORT).show()
+            false
+        } finally {
+        }
+        return v
+    }
 }
