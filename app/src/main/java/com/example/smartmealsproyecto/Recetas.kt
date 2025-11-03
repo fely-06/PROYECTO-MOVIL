@@ -10,7 +10,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.smartmealsproyecto.databinding.FragmentRecetasBinding
-
+import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 class Recetas : Fragment() {
 
     private var _binding: FragmentRecetasBinding? = null
@@ -47,37 +48,23 @@ class Recetas : Fragment() {
     }
 
     private fun cargarmisRecetas() {
-        // Solo para mostrar que la receta se guardó → recarga desde BD
-        recetasList.clear()
-        val crud = ClaseCRUD(requireContext())
-        crud.iniciarBD()
-
-        val db = crud.dbHelper.readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita " +
-                    "FROM Receta WHERE esGlobal = 0 AND idUsuario = ?",
-            arrayOf("1") // ← usa tu ID real
-        )
-
-        with(cursor) {
-            if (moveToFirst()) {
-                do {
-                    val id = getInt(getColumnIndexOrThrow("idReceta"))
-                    val idUsuario = getInt(getColumnIndexOrThrow("idUsuario"))
-                    val nombre = getString(getColumnIndexOrThrow("nombre"))
-                    val descripcion = getString(getColumnIndexOrThrow("descripcion")) ?: ""
-                    val tiempo = getInt(getColumnIndexOrThrow("tiempoPreparacion"))
-                    val esGlobal = getInt(getColumnIndexOrThrow("esGlobal")) == 1
-                    val favorita = getInt(getColumnIndexOrThrow("favorita")) == 1
-
-                    recetasList.add(Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita))
-                } while (moveToNext())
-            }
-            close()
+        if (ClaseUsuario.iduser == 0) {
+            Toast.makeText(requireContext(), "Inicia sesión para ver tus recetas", Toast.LENGTH_SHORT).show()
+            return
         }
-        adapter.notifyDataSetChanged()
-    }
 
+        lifecycleScope.launch {
+            try {
+                val crud = ClaseCRUD(requireContext())
+                crud.iniciarBD()
+                crud.obtenerMisRecetas(recetasList,recetasList)
+                adapter.notifyDataSetChanged()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Error al cargar tus recetas", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     private fun setupFab() {
         binding.fabAdd.setOnClickListener {
             val fragment = NuevaRecetaFragment.newInstance()

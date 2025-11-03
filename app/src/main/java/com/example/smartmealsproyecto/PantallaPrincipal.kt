@@ -27,6 +27,7 @@ class PantallaPrincipal : AppCompatActivity() {
                 R.id.makeFragment->fragmentos(Calendario())
                 R.id.InvFragment->fragmentos(Inventario())
                 R.id.profileFragment->fragmentos(Perfil())
+                R.id.graficasFragment -> fragmentos(Graficas())
             }
             true
         }

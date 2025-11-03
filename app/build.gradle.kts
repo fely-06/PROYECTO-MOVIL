@@ -57,7 +57,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.recyclerview)
     implementation(libs.kotlinx.coroutines.android)
-
+    implementation(libs.mpandroidchart)
     implementation(libs.kotlinx.coroutines.core)
 
     // Lifecycle + Coroutines

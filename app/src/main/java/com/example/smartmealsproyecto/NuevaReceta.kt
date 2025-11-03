@@ -108,7 +108,6 @@ class NuevaRecetaFragment : Fragment() {
             return
         }
 
-        // ✅ Usar coroutine
         lifecycleScope.launch {
             try {
                 val crud = ClaseCRUD(requireContext())
@@ -116,19 +115,16 @@ class NuevaRecetaFragment : Fragment() {
 
                 val nuevaReceta = Receta2(
                     id = 0, // SQLite auto-genera el ID
-                    idUsuario = 1, // Usar tu ID de usuario real
-                    nombre = nombre,
+                    idUsuario = ClaseUsuario.iduser,
+                     nombre = nombre,
                     descripcion = descripcion,
                     tiempoPreparacion = tiempo,
                     esGlobal = false,
                     favorita = false
                 )
-
-                // Guardar en base de datos (se ejecuta en background)
                 val idReceta = crud.crearReceta(nuevaReceta, ingredientesList)
 
                 if (idReceta != -1L) {
-                    // Crear receta con el ID real de la BD
                     val recetaGuardada = nuevaReceta.copy(id = idReceta.toInt())
                     onRecetaGuardadaListener?.invoke(recetaGuardada)
                     parentFragmentManager.popBackStack()

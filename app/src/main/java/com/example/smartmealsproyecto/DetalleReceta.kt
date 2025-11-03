@@ -267,42 +267,39 @@ class DetalleRecetaFragment() : Fragment() {
 
     private fun cargarRecetaDesdeBD() {
         lifecycleScope.launch {
-            // Variables para almacenar los datos cargados
             var recetaCargada: Receta2? = null
             val ingredientesTemp = mutableListOf<Ingrediente>()
 
-            // Cargar datos en background
             withContext(Dispatchers.IO) {
                 val crud = ClaseCRUD(requireContext())
                 crud.iniciarBD()
-
                 val db = crud.dbHelper.readableDatabase
 
-                // Cargar receta
+                // ✅ Query SIN campo favorita en tabla Receta
                 val cursorReceta = db.rawQuery(
-                    "SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita " +
-                            "FROM Receta WHERE idReceta = ?",
-                    arrayOf(recetaId.toString())
+                    """
+                SELECT r.idReceta, r.idUsuario, r.nombre, r.descripcion, 
+                       r.tiempoPreparacion, r.esGlobal,
+                       CASE WHEN rg.idReceta IS NOT NULL THEN 1 ELSE 0 END AS favorita
+                FROM Receta r
+                LEFT JOIN RecetaGuardada rg 
+                    ON r.idReceta = rg.idReceta 
+                    AND rg.idUsuario = ?
+                WHERE r.idReceta = ?
+                """.trimIndent(),
+                    arrayOf(ClaseUsuario.iduser.toString(), recetaId.toString())
                 )
 
                 if (cursorReceta.moveToFirst()) {
                     val id = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idReceta"))
-                    val idUsuario =
-                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idUsuario"))
-                    val nombre =
-                        cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("nombre"))
-                    val descripcion =
-                        cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion"))
-                            ?: ""
-                    val tiempo =
-                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
-                    val esGlobal =
-                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
-                    val favorita =
-                        cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
+                    val idUsuario = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("idUsuario"))
+                    val nombre = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("nombre"))
+                    val descripcion = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion")) ?: ""
+                    val tiempo = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
+                    val esGlobal = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
+                    val favorita = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
 
-                    recetaCargada =
-                        Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
+                    recetaCargada = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
 
                     // Cargar ingredientes
                     val cursorIng = db.rawQuery(
@@ -325,7 +322,7 @@ class DetalleRecetaFragment() : Fragment() {
                 cursorReceta.close()
             }
 
-            // Actualizar UI en el hilo principal (automáticamente después del withContext)
+            // Actualizar UI
             receta = recetaCargada
             ingredientesList.clear()
             ingredientesList.addAll(ingredientesTemp)
@@ -335,6 +332,7 @@ class DetalleRecetaFragment() : Fragment() {
                 binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
                 binding.editTextDescripcion.setText(it.descripcion)
             }
+
             ingredientesAdapter.notifyDataSetChanged()
         }
     }
