@@ -219,8 +219,6 @@ class ClaseCRUD(private val context: Context) {
             recetasListOriginal.addAll(tempList)
         }
     }
-
-
     suspend fun crearReceta(receta: Receta2, ingredientes: List<Ingrediente>): Long =
         withContext(Dispatchers.IO) {
             val db = dbHelper.writableDatabase
@@ -694,13 +692,13 @@ class ClaseCRUD(private val context: Context) {
 
     /////////////////////////////Grafica////////////////////////////////////
 
-    suspend fun obtenerIngredientesMasUsados(idUsuario: Int,limite: Int = 10): List<IngredienteEstadistica> = withContext(Dispatchers.IO) {
+    suspend fun obtenerIngredientesMasUsados(idUsuario: Int,limite: Int = 5): List<IngredienteEstadistica> = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
         val lista = mutableListOf<IngredienteEstadistica>()
         try {
             val cursor = db.rawQuery(
                 """
-                SELECT i.nombre, COUNT(*) as usos
+                SELECT i.nombre, COUNT(i.nombre) as usos
             FROM Ingrediente i
             INNER JOIN Receta r ON i.idReceta = r.idReceta
             WHERE (r.idUsuario = ? AND r.esGlobal = 0)
