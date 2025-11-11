@@ -51,3 +51,5 @@
 - Añadir DELETE a Usuarios(H).
 - Añadir UPDATE a Usuarios(H).
 - Hacer CRUD para Inventario (H).
+
+

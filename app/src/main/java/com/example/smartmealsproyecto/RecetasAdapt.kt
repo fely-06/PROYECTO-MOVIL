@@ -7,7 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class RecetasAdapt(
-    private val recetas: List<Receta2>,
+    private val recetas: MutableList<Receta2>,
     private val onRecetaClick: (Receta2) -> Unit
 ) : RecyclerView.Adapter<RecetasAdapt.RecetaViewHolder>() {
 

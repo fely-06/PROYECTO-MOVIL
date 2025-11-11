@@ -26,6 +26,7 @@ class ClaseCRUD(private val context: Context) {
     }
     //////////////////////////////RECETAS/////////////////////////////////////
     // ============ READ ============
+
     suspend fun guardarRecetaGlobal(idReceta: Int): Boolean = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
         try {
@@ -61,9 +62,9 @@ class ClaseCRUD(private val context: Context) {
             cursorExiste.close()
 
             if (yaExiste) {
-                withContext(Dispatchers.Main) {
+                /*withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Esta receta ya está guardada", Toast.LENGTH_SHORT).show()
-                }
+                }*/
                 return@withContext false
             }
 
@@ -127,8 +128,6 @@ class ClaseCRUD(private val context: Context) {
         recetasListOriginal: MutableList<Receta2>
     ) = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
-
-        // ✅ Query con LEFT JOIN para saber si está guardada
         val query = """
             SELECT 
                 r.idReceta, 
@@ -186,14 +185,20 @@ class ClaseCRUD(private val context: Context) {
 
         // Query corregido: Recetas propias + globales favoritas
         val query = """
-            SELECT idReceta, idUsuario, nombre, descripcion, tiempoPreparacion, esGlobal, favorita
-            FROM Receta
-            WHERE (idUsuario = ? AND esGlobal = 0)
-               OR (esGlobal = 1 AND favorita = 1)
-            ORDER BY nombre ASC
+            SELECT DISTINCT r.idReceta, r.idUsuario, r.nombre,r.descripcion,r.tiempoPreparacion,r.esGlobal,
+            CASE 
+                WHEN rg.idReceta IS NOT NULL THEN 1 
+                ELSE 0 
+            END AS favorita 
+            FROM Receta r
+            LEFT JOIN RecetaGuardada rg 
+        ON r.idReceta = rg.idReceta AND rg.idUsuario = ?
+        WHERE 
+        (r.idUsuario = ?  and r.esGlobal = 0)           
+        OR rg.idUsuario = ?;
         """.trimIndent()
 
-        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+        val cursor = db.rawQuery(query, arrayOf(ClaseUsuario.iduser.toString(),ClaseUsuario.iduser.toString(),ClaseUsuario.iduser.toString()))
         val tempList = mutableListOf<Receta2>()
 
         try {

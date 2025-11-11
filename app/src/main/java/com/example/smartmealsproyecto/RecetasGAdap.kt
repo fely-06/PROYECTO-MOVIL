@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 class RecetasGAdap(
     private val recetas: List<Receta2>,
     private val onRecetaClick: (Receta2) -> Unit,
-    private val onCheckBoxCheck: (Receta2) -> Unit
+    private val onCheckBoxCheck: (Receta2, Int) -> Unit
 ) : RecyclerView.Adapter<RecetasGAdap.RecetaViewHolder>() {
 
     inner class RecetaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -29,8 +29,12 @@ class RecetasGAdap(
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val receta = recetas[position]
-                    receta.favorita == isChecked
-                    onCheckBoxCheck(receta)
+                    if(receta.favorita == isChecked){
+                        onCheckBoxCheck(receta,1)
+                    }
+                    else{
+                        onCheckBoxCheck(receta,0)
+                    }
                 }
             }
         }

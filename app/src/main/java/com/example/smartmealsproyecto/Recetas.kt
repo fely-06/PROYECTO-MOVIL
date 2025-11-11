@@ -1,7 +1,5 @@
 package com.example.smartmealsproyecto
 
-
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +17,7 @@ class Recetas : Fragment() {
 
     companion object {
         val recetasList = mutableListOf<Receta2>()
+        private val recetasListOriginal = mutableListOf<Receta2>()
     }
 
     private lateinit var adapter: RecetasAdapt
@@ -37,27 +36,26 @@ class Recetas : Fragment() {
         setupRecyclerView()
         cargarmisRecetas()
         setupFab()
+        setupSearch()
+        setupSortButtons()
     }
 
     private fun setupRecyclerView() {
-        adapter = RecetasAdapt(recetasList) { /* no usado aún */ }
+        adapter = RecetasAdapt(RecetasTotales.misRecetas) { /* no usado aún */ }
         binding.rec.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            this.adapter = adapter
+            adapter = this@Recetas.adapter
         }
     }
 
     private fun cargarmisRecetas() {
-        if (ClaseUsuario.iduser == 0) {
-            Toast.makeText(requireContext(), "Inicia sesión para ver tus recetas", Toast.LENGTH_SHORT).show()
-            return
-        }
-
         lifecycleScope.launch {
             try {
                 val crud = ClaseCRUD(requireContext())
                 crud.iniciarBD()
-                crud.obtenerMisRecetas(recetasList,recetasList)
+                crud.obtenerMisRecetas(RecetasTotales.misRecetas, recetasListOriginal)
+                recetasList.clear();
+                recetasList.addAll(RecetasTotales.misRecetas)
                 adapter.notifyDataSetChanged()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -69,13 +67,48 @@ class Recetas : Fragment() {
         binding.fabAdd.setOnClickListener {
             val fragment = NuevaRecetaFragment.newInstance()
             fragment.setOnRecetaGuardadaListener {
-                // Recargar lista desde BD
                 cargarmisRecetas()
             }
             parentFragmentManager.beginTransaction()
                 .replace(R.id.frame_layout, fragment)
                 .addToBackStack(null)
                 .commit()
+        }
+    }
+    private fun filterRecetas(query: String) {
+        val filtered = if (query.isEmpty()) {
+            recetasListOriginal
+        } else {
+            recetasListOriginal.filter {
+                it.nombre.contains(query, ignoreCase = true)
+            }
+        }
+        RecetasTotales.misRecetas.clear()
+        RecetasTotales.misRecetas.addAll(filtered)
+        adapter.notifyDataSetChanged()
+    }
+    private fun setupSearch() {
+        binding.editTextSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = binding.editTextSearch.text.toString().trim()
+                filterRecetas(query)
+                true
+            } else {
+                false
+            }
+        }
+    }
+    private fun setupSortButtons() {
+        binding.iconSortAZ.setOnClickListener {
+            RecetasTotales.misRecetas.sortBy { it.nombre }
+            adapter.notifyDataSetChanged()
+            Toast.makeText(requireContext(), "Ordenado A-Z", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.iconSortZA.setOnClickListener {
+            RecetasTotales.misRecetas.sortByDescending { it.nombre }
+            adapter.notifyDataSetChanged()
+            Toast.makeText(requireContext(), "Ordenado Z-A", Toast.LENGTH_SHORT).show()
         }
     }
 

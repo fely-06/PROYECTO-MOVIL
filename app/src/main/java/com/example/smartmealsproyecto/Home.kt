@@ -41,7 +41,7 @@ class Home : Fragment() {
         adapter = RecetasGAdap(
             recetas = recetasList,
             onRecetaClick = { receta -> abrirDetalleReceta(receta) },
-            onCheckBoxCheck = { receta -> AgregarReceta(receta) }
+            onCheckBoxCheck = { receta, num -> AgregarReceta(receta, num) }
         )
         binding.recG.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -53,6 +53,7 @@ class Home : Fragment() {
         lifecycleScope.launch {
             val crud = ClaseCRUD(requireContext())
             crud.iniciarBD()
+            //crud.obtenerMisRecetas(RecetasTotales.misRecetas)
             crud.obtenerRecetasGlobales(recetasList, recetasListOriginal)
             adapter.notifyDataSetChanged()
         }
@@ -104,16 +105,29 @@ class Home : Fragment() {
             .addToBackStack(null)
             .commit()
     }
-    private fun AgregarReceta(receta: Receta2){
+    private fun AgregarReceta(receta: Receta2, num: Int){
         val misRecetas = RecetasTotales.misRecetas
-        if (receta.favorita) {
-            if (!misRecetas.any { it.id == receta.id }) {
-                misRecetas.add(receta)
-                Toast.makeText(requireContext(), "${receta.nombre} agregada a Mis Recetas", Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val crud = ClaseCRUD(requireContext())
+            crud.iniciarBD()
+            if (!misRecetas.any { it.id == receta.id }){
+                if (crud.guardarRecetaGlobal(receta.id)){
+                    ///misRecetas.add(receta)
+                    /*if(receta.favorita == false){
+                        Toast.makeText(requireContext(), "${receta.nombre} agregada a Mis Recetas", Toast.LENGTH_SHORT).show()
+                    }*/
+                    loadRecetasFromDatabase()
+                }
+
             }
-        } else {
-            misRecetas.removeAll { it.id == receta.id }
-            Toast.makeText(requireContext(), "${receta.nombre} eliminada de Mis Recetas", Toast.LENGTH_SHORT).show()
+            else if(num == 0){
+                crud.eliminarRecetaGuardada(receta.id)
+                ///misRecetas.removeAll { it.id == receta.id }
+                /*if(receta.favorita == true){
+                    Toast.makeText(requireContext(), "${receta.nombre} eliminada de Mis Recetas", Toast.LENGTH_SHORT).show()
+                }*/
+                loadRecetasFromDatabase()
+            }
         }
     }
 

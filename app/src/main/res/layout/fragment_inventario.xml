@@ -62,8 +62,7 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewProductos"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false" />
+            android:layout_height="wrap_content"/>
     </ScrollView>
 
     <ImageButton
