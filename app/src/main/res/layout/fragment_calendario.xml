@@ -40,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="400dp"
         android:background="@drawable/editext_redondeado"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:paddingBottom="20dp"
         android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
@@ -52,13 +52,25 @@
     </CalendarView>
 
     <Button
+        android:id="@+id/btnplanear"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:text="Generar Lista de Compras"
+        android:backgroundTint="@color/AmarilloClaro"
+        android:textColor="@color/NaranjaFuerte"
+        android:textStyle="bold"
+        android:textSize="15sp"/>
+    <Button
         android:id="@+id/buttonMostrarListaCompras"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="10dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:text="Mostrar Lista de Compras"
+        android:text="Ver Mis Listas"
         android:backgroundTint="@color/AmarilloClaro"
         android:textColor="@color/NaranjaFuerte"
         android:textStyle="bold"

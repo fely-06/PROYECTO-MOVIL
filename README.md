@@ -52,4 +52,7 @@
 - Añadir UPDATE a Usuarios(H).
 - Hacer CRUD para Inventario (H).
 
+### _Miercoles 19 de Noviembre de 2025_: 
+- Se terminaron todos los cruds.
+
 

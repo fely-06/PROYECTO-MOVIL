@@ -1,5 +1,6 @@
 package com.example.smartmealsproyecto
 
+import android.R
 import android.content.ContentValues
 import android.content.Context
 import android.database.SQLException
@@ -9,12 +10,19 @@ import android.widget.Toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import kotlin.math.absoluteValue
 
 class ClaseCRUD(private val context: Context) {
     val dbHelper = DatabaseHelper.getInstance(context)
     var idusuario: Int = 0
     var nombreUsuario: String = ""
     var contrasenaUser: String = ""
+
+    val itemsIngFaltantes = mutableListOf<ItemListaCompra>()
 
     fun iniciarBD(){
         try {
@@ -731,5 +739,416 @@ class ClaseCRUD(private val context: Context) {
         }
 
         lista
+    }
+
+    ////////////////////////// Listas de compras /////////////////////////
+
+    data class ingredientesNec(
+        var nombre: String = "",
+        var cantidad: Double = 0.0,
+        var unidad: String = "")
+
+    data class MapeoIngrediente(
+        val nombreReceta: String,
+        val nombreInventario: String
+    )
+
+    suspend fun IngredientesRequeridos(fechaIn: String, fechaFin: String): MutableList<ingredientesNec>{
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT i.nombre,sum(i.cantidad) as cantidad, i.unidad\n" +
+                    "                    FROM Agenda a\n" +
+                    "                    JOIN AgendaReceta ar ON a.idAgenda = ar.idAgenda\n" +
+                    "                    JOIN Receta r ON ar.idReceta = r.idReceta\n" +
+                    "                    JOIN Ingrediente i ON r.idReceta = i.idReceta\n" +
+                    "                    WHERE a.idUsuario = ? AND a.fecha BETWEEN ? AND ? \n" +
+                    "group by i.nombre, i.unidad",
+            arrayOf(ClaseUsuario.iduser.toString(), fechaIn, fechaFin)
+        )
+
+        val tempList = mutableListOf<ingredientesNec>()
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val nombre = getString(getColumnIndexOrThrow("nombre"))
+                    val cantidad = getDouble(getColumnIndexOrThrow("cantidad"))
+                    val unidad = getString(getColumnIndexOrThrow("unidad"))
+                    tempList.add(ingredientesNec(nombre, cantidad, unidad))
+                } while (cursor.moveToNext())
+            }
+        }
+        cursor.close()
+        return tempList
+    }
+    suspend fun IngredientesEnInventario(): MutableList<ingredientesNec>{
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT nombre, cantidad, unidad FROM Inventario WHERE idUsuario = ?",
+            arrayOf(ClaseUsuario.iduser.toString())
+        )
+
+        val tempList = mutableListOf<ingredientesNec>()
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val nombre = getString(getColumnIndexOrThrow("nombre"))
+                    val cantidad = getDouble(getColumnIndexOrThrow("cantidad"))
+                    val unidad = getString(getColumnIndexOrThrow("unidad"))
+                    tempList.add(ingredientesNec(nombre, cantidad, unidad))
+                } while (cursor.moveToNext())
+            }
+        }
+        cursor.close()
+        return tempList
+    }
+    suspend fun IngredientesMapeados(): MutableList<MapeoIngrediente>{
+        val db = dbHelper.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT nombreReceta, nombreInventario FROM MapeoIngredienteUsuario WHERE idUsuario = ?",
+            arrayOf(ClaseUsuario.iduser.toString())
+        )
+
+        val tempList = mutableListOf<MapeoIngrediente>()
+
+        with(cursor) {
+            if (moveToFirst()) {
+                do {
+                    val nombreR = getString(getColumnIndexOrThrow("nombreReceta"))
+                    val nombreInv = getString(getColumnIndexOrThrow("nombreInventario"))
+                    tempList.add(MapeoIngrediente(nombreR, nombreInv))
+                } while (cursor.moveToNext())
+            }
+        }
+        cursor.close()
+        return tempList
+    }
+
+    data class IngredienteParaMapear(
+        val nombreReceta: String,
+        val candidatos: List<String>  // nombres tal como están en inventario
+    )
+
+    val conversiones = mapOf(
+        // Volumen
+        "litros" to 1000.0,      // 1 litro = 1000 ml
+        "mililitros" to 1.0,     // 1 ml = 1 ml (base)
+
+        // Peso
+        "kilo(s)" to 1000.0,       // 1 kg = 1000 g
+        "gramos" to 1.0,         // 1 g = 1 g (base)
+
+        // Cantidad
+        "unidad(es)" to 1.0,
+        "dientes" to 1.0,
+        "pieza(s)" to 1.0,
+        "rebanada(s)" to 1.0,
+        "cucharada(s)" to 5.0,///5 ml
+        "cucharadita" to 3.0, //3 g
+        "ramita" to 1.0
+    )
+    fun convertirAUnidadBase(cantidad: Double, unidad: String): Double? {
+        val factor = conversiones[unidad.lowercase().trim()]
+        return if (factor != null) {
+            cantidad * factor
+        } else {
+            null
+        }
+    }
+
+    fun verificarInventario(cantidadNecesaria: Double, unidadNecesaria: String, cantidadDisponible: Double, unidadDisponible: String): ResultadoVerificacion {
+
+        val baseNecesaria = convertirAUnidadBase(cantidadNecesaria, unidadNecesaria)
+        val baseDisponible = convertirAUnidadBase(cantidadDisponible, unidadDisponible)
+
+        if (baseNecesaria == null || baseDisponible == null) {
+            return ResultadoVerificacion.Error("Unidad no soportada")
+        }
+
+        val faltante = baseNecesaria - baseDisponible
+
+        return if (faltante <= 0.0) {
+            ResultadoVerificacion.Suficiente(faltante.absoluteValue)
+        } else {
+            ResultadoVerificacion.Insuficiente(faltante)
+        }
+    }
+
+    sealed class ResultadoVerificacion {
+        data class Suficiente(val sobrante: Double) : ResultadoVerificacion()
+        data class Insuficiente(val faltante: Double) : ResultadoVerificacion()
+        data class Error(val mensaje: String) : ResultadoVerificacion()
+    }
+
+    data class ItemListaCompra(
+        val nombreIngrediente: String,
+        val cantidad: Double,
+        val unidad: String,
+        val idLista: Long? = null,
+        val idItem: Long? = null,
+        val comprado: Boolean = false
+    )
+    object ListaCompraTemporal {
+        var idUsuario: Int = 0
+        var nombre: String = ""
+        var items: List<ItemListaCompra> = emptyList()
+    }
+
+
+    suspend fun generarSugerenciasMapeo(fechaInicio: String, fechaFin: String): List<IngredienteParaMapear> {
+        val ingredientesRequeridos = IngredientesRequeridos(fechaInicio, fechaFin)
+        val inventarioNombres = IngredientesEnInventario().map { it.nombre.lowercase().trim() }
+        //var inventario = IngredientesEnInventario().associateBy { it.nombre.lowercase().trim() }
+        var inventario: MutableMap<String, ingredientesNec> =
+            IngredientesEnInventario()
+                .associateByTo(mutableMapOf()) { it.nombre.lowercase().trim() }
+        val mapeos = IngredientesMapeados().associateBy { it.nombreReceta.lowercase().trim() }
+        //val mapeosInv = IngredientesMapeados().associateBy { it.nombreInventario.lowercase().trim() }
+
+        // ingredientes que NO están en inventario ni tienen mapeo
+        val paraMapear = mutableListOf<IngredienteParaMapear>()
+
+        for (nombreReceta in ingredientesRequeridos) {
+            var key: String = nombreReceta.nombre.lowercase().trim()
+            val uni = nombreReceta.unidad.lowercase().trim()
+            val cant= nombreReceta.cantidad
+
+            val candidatos = inventarioNombres.filter { candidato ->
+                tieneCoincidenciaPlausible(key, candidato)
+            }
+            // tiene mapeo?
+            if (mapeos.containsKey(key)) {
+                val nombreEnInventario = mapeos[key]!!.nombreInventario.lowercase().trim()
+                key = nombreEnInventario
+                 ////consultar el nombre en inventario con el que esta mapeado
+            }
+            // directamente en inventario?
+            if (inventarioNombres.contains(key)) {
+                val unidadI = inventario[key]!!.unidad.lowercase().trim()
+                var cantidadI: Double = inventario[key]!!.cantidad
+
+                //val ingrediente = inventario[key]!!
+
+                when (val resultado = verificarInventario(
+                    cant, uni,
+                    cantidadI, unidadI
+                )) {
+                    is ResultadoVerificacion.Suficiente -> {
+                        // Restar de inventario
+                        val cantidadEnBase =
+                            convertirAUnidadBase(cant, uni)!!
+                        val nuevaCantidadEnBase = convertirAUnidadBase(
+                            cantidadI,
+                            unidadI
+                        )!! - cantidadEnBase
+                        // Convertir de vuelta a la unidad original del inventario
+                        inventario[key]?.cantidad =
+                            nuevaCantidadEnBase / conversiones[unidadI.lowercase()
+                                .trim()]!!
+                    }
+
+                    is ResultadoVerificacion.Insuficiente -> {
+                        //calcula faltante
+                        val cantidadNece =
+                            convertirAUnidadBase(cant, uni)!!
+                        val cantidadFalta = cantidadNece - convertirAUnidadBase(
+                            cantidadI,
+                            unidadI
+                        )!!
+
+                        val cantidadConver =
+                            cantidadFalta / conversiones[unidadI.lowercase()
+                                .trim()]!!
+                        ///agrega a lista de compras
+                        val item = ItemListaCompra(
+                            nombreIngrediente = key,
+                            cantidad = cantidadConver,
+                            unidad = unidadI.lowercase().trim(),
+                            comprado = false
+                        )
+                        itemsIngFaltantes.add(item)
+                    }
+                    is ResultadoVerificacion.Error -> {
+                        println("Error: ${resultado.mensaje}")
+                    }
+                }
+                continue
+            }
+            // Solo sugerir mapeo si hay candidatos
+            if (candidatos.isNotEmpty()) {
+                paraMapear.add(
+                    IngredienteParaMapear(
+                        nombreReceta = nombreReceta.nombre,
+                        candidatos = candidatos
+                    )
+                )
+                ///dialogo para mapear
+            }
+            else {
+                // Si no hay candidatos agregar directo a lista de compras (sin mapeo)
+                val item = ItemListaCompra(
+                    nombreIngrediente = key,
+                    cantidad = cant,
+                    unidad = uni.lowercase().trim(),
+                    comprado = false
+                )
+                itemsIngFaltantes.add(item)
+            }
+        }
+        ListaCompraTemporal.idUsuario = ClaseUsuario.iduser
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        ListaCompraTemporal.nombre = "Lista del ${LocalDate.parse(fechaInicio, formatter)}/${LocalDate.parse(fechaFin, formatter)}"
+        ListaCompraTemporal.items = itemsIngFaltantes
+
+        return paraMapear
+    }
+
+    suspend fun obtenerLista(): MutableList<ItemListaCompra>{
+        return itemsIngFaltantes
+    }
+    suspend fun obtenerDatosLita(): ListaCompraTemporal{
+        return ListaCompraTemporal
+    }
+
+
+    fun guardarListaCompraBD(
+        lista: ListaCompraTemporal,
+        onReemplazoNecesario: (confirmar: () -> Unit) -> Unit
+    ) {
+        // Verificar si ya existe una lista con el mismo nombre y usuario
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            "ListaCompra",
+            arrayOf("idLista"),
+            "idUsuario = ? AND nombre = ?",
+            arrayOf(lista.idUsuario.toString(), lista.nombre),
+            null, null, null
+        )
+
+        val existeLista = cursor.count > 0
+        cursor.close()
+
+        if (existeLista) {
+
+            onReemplazoNecesario {
+                reemplazarListaCompraBD(lista)
+            }
+        } else {
+            insertarNuevaListaBD(lista)
+        }
+    }
+
+    private fun insertarNuevaListaBD(lista: ListaCompraTemporal): Long {
+        val db = dbHelper.writableDatabase
+        db.beginTransaction()
+        try {
+            val fecha = System.currentTimeMillis().toString()
+            val idLista = db.insert(
+                "ListaCompra",
+                null,
+                ContentValues().apply {
+                    put("idUsuario", lista.idUsuario)
+                    put("fechaCreacion", fecha)
+                    put("nombre", lista.nombre)
+                    put("estado", "pendiente")
+                }
+            )
+
+            if (idLista == -1L) {
+                throw SQLException("No se pudo crear la lista")
+            }
+            else{
+                Toast.makeText(context, "Lista Guardada", Toast.LENGTH_SHORT).show()
+            }
+
+            for (item in lista.items) {
+                db.insert(
+                    "ListaCompraIngrediente",
+                    null,
+                    ContentValues().apply {
+                        put("idLista", idLista)
+                        put("nombreIngrediente", item.nombreIngrediente)
+                        put("cantidad", item.cantidad)
+                        put("unidad", item.unidad)
+                        put("comprado", if (item.comprado) 1 else 0)
+                    }
+                )
+            }
+
+            db.setTransactionSuccessful()
+            return idLista
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw RuntimeException("Error al insertar nueva lista", e)
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    private fun reemplazarListaCompraBD(lista: ListaCompraTemporal): Long {
+        val db = dbHelper.writableDatabase
+        db.beginTransaction()
+        try {
+            db.delete(
+                "ListaCompraIngrediente",
+                "idLista IN (SELECT idLista FROM ListaCompra WHERE idUsuario = ? AND nombre = ?)",
+                arrayOf(lista.idUsuario.toString(), lista.nombre)
+            )
+            val rowsDeleted = db.delete(
+                "ListaCompra",
+                "idUsuario = ? AND nombre = ?",
+                arrayOf(lista.idUsuario.toString(), lista.nombre)
+            )
+
+            val idLista = insertarNuevaListaBD(lista)
+
+            db.setTransactionSuccessful()
+            return idLista
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw RuntimeException("Error al reemplazar lista", e)
+        } finally {
+            db.endTransaction()
+        }
+    }
+
+    fun tieneCoincidenciaPlausible(a: String, b: String): Boolean {
+        if (a == b) return true
+        if (a.contains(b, ignoreCase = true)) return true
+        if (b.contains(a, ignoreCase = true)) return true
+
+        // Coincidencia por primeras 3 letras
+        val minLen = minOf(a.length, b.length)
+        if (minLen >= 3) {
+            val prefijoA = a.take(3)
+            val prefijoB = b.take(3)
+            if (prefijoA == prefijoB) return true
+        }
+
+        return false
+    }
+
+    fun obtenerNombresListasPorUsuario(idUsuario: Int): List<String> {
+        val db = dbHelper.readableDatabase
+        val nombres = mutableListOf<String>()
+
+        val cursor = db.query(
+            "ListaCompra",
+            arrayOf("nombre"),
+            "idUsuario = ?",
+            arrayOf(idUsuario.toString()),
+            null, null,
+            "fechaCreacion DESC"
+        )
+
+        with(cursor) {
+            while (moveToNext()) {
+                getString(0)?.let { if (it.isNotBlank()) nombres.add(it) }
+            }
+            close()
+        }
+
+        return nombres
     }
 }

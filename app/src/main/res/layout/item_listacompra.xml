@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="1dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/AmarilloClaro"
+        android:padding="16dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tvNombreProd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Producto"
+                android:textSize="18sp"
+                android:fontFamily="@font/ms"
+                android:textColor="@color/NaranjaFuerte" />
+            <TextView
+                android:id="@+id/tvPrecio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio"
+                android:textSize="18sp"
+                android:layout_marginStart="20dp"
+                android:fontFamily="@font/ms"
+                android:textColor="@color/NaranjaFuerte" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <EditText
+                android:id="@+id/cantidadNecesaria"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="Necesario"
+                android:textSize="15sp"
+                android:textColor="@color/NaranjaFuerte" />
+            <TextView
+                android:id="@+id/unidad"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="unidad"
+                android:textSize="15sp"
+                android:layout_marginStart="5dp"
+                android:textColor="@color/NaranjaFuerte" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
