@@ -82,7 +82,7 @@ class Graficas : Fragment() {
 
         // Configurar dataset
         val dataSet = BarDataSet(entries, "Veces usado")
-        dataSet.color = Color.parseColor("#FF6F00")
+        dataSet.color = Color.parseColor("#fe6c22")
         dataSet.valueTextSize = 12f
         dataSet.valueTextColor = Color.BLACK
 

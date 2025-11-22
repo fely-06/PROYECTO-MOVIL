@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
@@ -20,6 +22,7 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
     private var _binding: FragmentDetalleAgendaBinding? = null
     private val binding get() = _binding!!
     private val RecetasList = mutableListOf<ClassDetAgenda>()
+    private val recetaslistComb = mutableListOf<Receta2>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,8 +44,38 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
             binding.recyclerViewRecetasD.layoutManager = LinearLayoutManager(requireContext())
             binding.recyclerViewRecetasD.adapter = DetalleAgendaAdap("Desayuno",RecetasList, { receta -> eliminarRec(receta) },{ receta -> actualizarRec(receta)})
         }
-        binding.agregaRec.setOnClickListener {
+        //////////////cargar nombres de recetas////////////////
+        var nombre: String = ""
+        var idR: Int = 0
+        lifecycleScope.launch {
+            val recetas = crud.obtenerMisRecetas(recetaslistComb, recetaslistComb)
+            val nomRe = recetaslistComb.map { it.nombre }
+            val idReceta = recetaslistComb.map { it.id }
+            val recetasConPlaceholder = listOf("Seleccionar Receta...") + nomRe
+            var idConPlaceholder: List<Int> = listOf(0) + idReceta
+            val adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                recetasConPlaceholder
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            binding.spinnerRecetas.adapter = adapter
+            binding.spinnerRecetas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    if (position == 0) return
+                    nombre = recetasConPlaceholder[position]
+                    idR = idConPlaceholder[position]
 
+                }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
+        }
+        binding.agregaRec.setOnClickListener {
+            val dialog = AgregarRecetaAgenda(RecetasList ,fechaSelec,idR, nombre,{
+                binding.recyclerViewRecetasD.adapter?.notifyDataSetChanged()
+            })
+            dialog.show(childFragmentManager, "AddProductDialog")
+            binding.spinnerRecetas.setSelection(0)
         }
     }
     private fun eliminarRec(receta: ClassDetAgenda){

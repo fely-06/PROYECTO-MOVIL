@@ -626,7 +626,7 @@ class ClaseCRUD(private val context: Context) {
     suspend fun consultarDetalleAgendaPorDia(fecha: String): MutableList<ClassDetAgenda>{
         val db = dbHelper.readableDatabase
         val cursor = db.rawQuery(
-            "SELECT ar.idAgendaReceta, a.tipoComida,r.nombre,ar.hora,ar.notas FROM Agenda a " +
+            "SELECT a.idAgenda, ar.idAgendaReceta, a.tipoComida,r.nombre,ar.hora,ar.notas FROM Agenda a " +
                     "INNER JOIN AgendaReceta ar ON a.idAgenda = ar.idAgenda INNER JOIN Receta r ON ar.idReceta = r.idReceta " +
                     "WHERE a.idUsuario = ? AND a.fecha = ? " +
                     "ORDER BY ar.hora",
@@ -638,12 +638,13 @@ class ClaseCRUD(private val context: Context) {
         with(cursor) {
             if (moveToFirst()) {
                 do {
+                    val idAg = getInt(getColumnIndexOrThrow("idAgenda"))
                     val id = getInt(getColumnIndexOrThrow("idAgendaReceta"))
                     val tipoC = getString(getColumnIndexOrThrow("tipoComida"))
                     val nombre = getString(getColumnIndexOrThrow("nombre"))
                     val hora = getString(getColumnIndexOrThrow("hora"))
                     val notas = getString(getColumnIndexOrThrow("notas"))?: ""
-                    tempList.add(ClassDetAgenda(id, tipoC, nombre, hora, notas))
+                    tempList.add(ClassDetAgenda(idAg,id, tipoC, nombre, hora, notas))
                 } while (cursor.moveToNext())
             }
         }
@@ -699,6 +700,42 @@ class ClaseCRUD(private val context: Context) {
             Toast.makeText(context, "Error inesperado al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
             false
         } finally {
+        }
+        return v
+    }
+    suspend fun insertarRecetaAgenda(idReceta: Int, hora: String, notas: String, fecha: String, tipoC: String): Int{
+        var db: SQLiteDatabase? = null
+        var resultado: Long = -1
+        var v: Int = 0
+        try {
+            db = dbHelper.writableDatabase
+            val valores = ContentValues().apply {
+                put("idUsuario", ClaseUsuario.iduser)
+                put("fecha", fecha)
+                put("tipoComida", tipoC)
+            }
+            resultado = db.insertOrThrow("Agenda", null, valores)
+            if(resultado!=-1L) {
+                val values = ContentValues().apply {
+                    put("idAgenda", resultado)
+                    put("idReceta", idReceta)
+                    put("hora", hora)
+                    put("notas", notas)
+                }
+                resultado = db.insertOrThrow("AgendaReceta", null, values)
+                Toast.makeText(context, "Receta Guardada", Toast.LENGTH_SHORT).show()
+                v = 1
+            }
+        } catch (e: SQLiteException) {
+            Toast.makeText(context, "Error SQLite al guardar receta: ${e.message}", Toast.LENGTH_SHORT).show()
+            resultado = -1
+
+        } catch (e: Exception) {
+            Toast.makeText(context, "${e.message}", Toast.LENGTH_LONG).show()
+            resultado = -1
+
+        } finally {
+
         }
         return v
     }
@@ -1173,4 +1210,7 @@ class ClaseCRUD(private val context: Context) {
 
         return items
     }
+
+
+
 }

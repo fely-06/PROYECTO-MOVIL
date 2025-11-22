@@ -36,7 +36,15 @@
             android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false" />
     </ScrollView>
-
+    <Spinner
+        android:id="@+id/spinnerRecetas"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:paddingStart="20dp"
+        android:background="@drawable/editext_redondeado"
+        android:textSize="15sp"
+        />
     <Button
         android:id="@+id/agregaRec"
         android:layout_width="match_parent"
