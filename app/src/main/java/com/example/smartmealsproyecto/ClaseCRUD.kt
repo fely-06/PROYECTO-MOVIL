@@ -516,7 +516,7 @@ class ClaseCRUD(private val context: Context) {
                     val cantidad = getDouble(getColumnIndexOrThrow("cantidad"))
                     val unidad = getString(getColumnIndexOrThrow("unidad"))
                     val codigoBarras = getString(getColumnIndexOrThrow("codigoBarras"))?: ""
-                    tempList.add(Producto(id, nombre, cantidad, unidad, codigoBarras))
+                    tempList.add(Producto(id, nombre, cantidad, unidad.lowercase().trim(), codigoBarras))
                 } while (cursor.moveToNext())
             }
         }
@@ -913,6 +913,8 @@ class ClaseCRUD(private val context: Context) {
         val candidatos: List<String>  // nombres tal como están en inventario
     )
 
+    public var unidadesMed: List<String> = listOf("litros", "mililitros", "kilo(s)","gramos"
+        ,"unidad(es)", "dientes","pieza(s)", "rebanada(s)", "cucharada(s)", "cucharadita", "ramita")
     val conversiones = mapOf(
         // Volumen
         "litros" to 1000.0,      // 1 litro = 1000 ml

@@ -83,15 +83,14 @@
                 android:layout_marginTop="16dp"
                />
 
-            <EditText
-                android:id="@+id/editTextUnidad"
+            <Spinner
+                android:id="@+id/spinnerUnidad"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:hint="Ej: Piezas, Gramos..."
-                android:inputType="text"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/editext_redondeado"
                 android:paddingStart="20dp"
+                android:background="@drawable/editext_redondeado"
+                android:textSize="15sp"
                 />
         </LinearLayout>
 
@@ -117,7 +116,7 @@
             android:text="Guardar"
             android:backgroundTint="@color/NaranjaFuerte"
             android:textColor="@color/white"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="20dp"
             />
     </LinearLayout>
 

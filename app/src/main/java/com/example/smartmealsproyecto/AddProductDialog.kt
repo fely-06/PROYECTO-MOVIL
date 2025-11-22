@@ -4,6 +4,7 @@ import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -12,9 +13,11 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.AdapterView
+import android.widget.Spinner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 
 class AddProductDialog(
@@ -26,7 +29,7 @@ class AddProductDialog(
         val view = LayoutInflater.from(context).inflate(R.layout.add_product, null)
         val autoComplete = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteProducto)
         val cantidadEt = view.findViewById<EditText>(R.id.editTextCantidad)
-        val unidadEt = view.findViewById<EditText>(R.id.editTextUnidad)
+        val unidadEt = view.findViewById<Spinner>(R.id.spinnerUnidad)
         val btnAgregar = view.findViewById<Button>(R.id.btnguardar)
         val btnCancelar = view.findViewById<Button>(R.id.btncancelar)
         val dialog = Dialog(requireContext())
@@ -39,6 +42,32 @@ class AddProductDialog(
                 ViewGroup.LayoutParams.WRAP_CONTENT
             )
             window.setBackgroundDrawableResource(android.R.color.transparent)
+        }
+        //////////////cargar nombres de recetas////////////////
+        var uni: String = ""
+        val crud = ClaseCRUD(requireContext())
+        crud.iniciarBD()
+        val unidades = crud.unidadesMed
+        val UnidadesConPlaceholder = listOf("Seleccionar Unidad...") + unidades
+        lifecycleScope.launch {
+
+            val adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                UnidadesConPlaceholder
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            unidadEt.adapter = adapter
+            unidadEt.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    if (position == 0) {
+                        uni = ""
+                        return
+                    }
+                    uni = UnidadesConPlaceholder[position]
+                }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
         }
         //obtener productos exist
         val nombres = existingProducts.map { it.nombre }
@@ -53,7 +82,12 @@ class AddProductDialog(
             val nombreSeleccionado = adapter.getItem(position) ?: return@OnItemClickListener
             val producto = existingProducts.find { it.nombre == nombreSeleccionado }
             if (producto != null) {
-                unidadEt.setText(producto.unidad)
+                uni = producto.unidad?.lowercase(Locale.getDefault())?.replace(" ", "") ?: "Seleccionar Unidad..."
+                //uni = producto.unidad.lowercase().trim()
+                if(uni == "unidade(s)"){
+                    uni = "unidad(es)"
+                }
+                unidadEt.setSelection(UnidadesConPlaceholder.indexOf(uni))
             }
         }
 
@@ -62,7 +96,7 @@ class AddProductDialog(
             var semodifico: Boolean = false
             val nombre = autoComplete.text.toString()
             val cantidadStr = cantidadEt.text.toString().trim()
-            val Unidad = unidadEt.text.toString().trim()
+            val Unidad = uni
 
             if (nombre.isEmpty() || cantidadStr.isEmpty()) {
                 Toast.makeText(context, "Completa todos los campos", Toast.LENGTH_SHORT).show()
@@ -74,8 +108,6 @@ class AddProductDialog(
                 Toast.makeText(context, "Cantidad inválida", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val crud = ClaseCRUD(requireContext())
-            crud.iniciarBD()
             val existente = existingProducts.find { it.nombre.equals(nombre, ignoreCase = true) }
                 if (existente != null) {
                     lifecycleScope.launch {
@@ -88,7 +120,7 @@ class AddProductDialog(
 
                 } else {
                     lifecycleScope.launch {
-                        seagrego = crud.insertarProducto(autoComplete.text.toString(), unidadEt.text.toString(), cantidadEt.text.toString().toDouble(), "")
+                        seagrego = crud.insertarProducto(autoComplete.text.toString(), Unidad, cantidadEt.text.toString().toDouble(), "")
                         if(seagrego == 1){
                                 crud.consultarInventario(existingProducts)
                             actualizProd(existingProducts)

@@ -19,7 +19,7 @@
             android:id="@+id/imageViewPlatillo"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/ic_launcher_background"
+            android:src="@drawable/comida"
             android:scaleType="centerCrop"
             android:contentDescription="Imagen del platillo" />
 

@@ -79,7 +79,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
-            android:padding="8dp"
+            android:padding="5dp"
             android:src="@drawable/az"
             android:contentDescription="Ordenar A-Z"
             app:tint="@color/white" />
@@ -89,8 +89,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="4dp"
-            android:padding="8dp"
-            android:src="@drawable/za"
+            android:padding="5dp"
+            android:src="@drawable/az"
             android:rotation="180"
             android:contentDescription="Ordenar Z-A"
             app:tint="@color/white" />
