@@ -18,7 +18,8 @@ class AgregarRecetaAgenda(
     private val fechaDetalle: String,
     private val idReceta: Int,
     private val nombreRec: String,
-    private val actualiz: (MutableList<ClassDetAgenda>) -> Unit
+    private val actualiz: (MutableList<ClassDetAgenda>) -> Unit,
+    private val cargarOtraVez: () -> Unit
 ) : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -58,6 +59,7 @@ class AgregarRecetaAgenda(
                     lista.clear()
                     lista.addAll(crud.consultarDetalleAgendaPorDia(fechaDetalle))
                     actualiz(lista)
+                    cargarOtraVez()
                 }
             }
             dialog.dismiss()

@@ -778,6 +778,52 @@ class ClaseCRUD(private val context: Context) {
         lista
     }
 
+    data class ComidasXdia(
+        val dia: String,
+        val cant: Int
+    )
+    suspend fun obtenerCantComidasXdia(): List<ComidasXdia> = withContext(Dispatchers.IO) {
+        val db = dbHelper.readableDatabase
+        val lista = mutableListOf<ComidasXdia>()
+        try {
+            val cursor = db.rawQuery(
+                """WITH RECURSIVE dias(dia) AS (
+                        SELECT date('now')
+                        UNION ALL 
+                        SELECT date(dia, '+1 day')
+                        FROM dias
+                        WHERE dia < date('now', '+6 days')
+                        )
+                        SELECT 
+                        dias.dia AS fecha,
+                        COALESCE(COUNT(Agenda.idAgenda), 0) AS cantidadComidas
+                        FROM dias
+                        LEFT JOIN Agenda 
+                        ON dias.dia = Agenda.fecha
+                        AND Agenda.idUsuario = ?
+                        GROUP BY dias.dia
+                        ORDER BY dias.dia ASC;
+                """,
+                arrayOf(ClaseUsuario.iduser.toString())
+            )
+            lista.clear()
+            with(cursor) {
+                if (moveToFirst()) {
+                    do {
+                        val fecha = getString(0)
+                        val cant = getInt(1)
+                        lista.add(ComidasXdia(fecha.substring(5), cant))
+                    } while (moveToNext())
+                }
+                close()
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        lista
+    }
+
     ////////////////////////// Listas de compras /////////////////////////
 
     data class ingredientesNec(

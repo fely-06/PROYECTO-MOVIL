@@ -1,5 +1,6 @@
 package com.example.smartmealsproyecto
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.smartmealsproyecto.databinding.FragmentCalendarioBinding
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -44,6 +52,7 @@ class Calendario : Fragment() {
         var fechaLimite: LocalDate? = null
         val crud = ClaseCRUD(requireContext())
 
+        cargarGrafico()
         // Obtener y mostrar listas
         lifecycleScope.launch {
             val nombres = crud.obtenerNombresListasPorUsuario(ClaseUsuario.iduser)
@@ -89,7 +98,7 @@ class Calendario : Fragment() {
             }
 
             if(planear == false) {
-                val bottomSheet = DetalleAgenda(fechaselect)
+                val bottomSheet = DetalleAgenda(fechaselect, {cargarGrafico()})
                 bottomSheet.show(parentFragmentManager, "detalle_adenda")
             }
             else{
@@ -117,6 +126,68 @@ class Calendario : Fragment() {
         }
     }
 
+    fun cargarGrafico() {
+        lifecycleScope.launch {
+            try {
+                val crud = ClaseCRUD(requireContext())
+                crud.iniciarBD()
+
+                val datos = crud.obtenerCantComidasXdia()
+
+                if (datos.isEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "No hay datos para mostrar", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
+
+                withContext(Dispatchers.Main) {
+                    configurarGrafico(datos)
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al cargar gráfico: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun configurarGrafico(datos: List<ClaseCRUD.ComidasXdia>) {
+        val entries = datos.mapIndexed { index, item ->
+            BarEntry(index.toFloat(), item.cant.toFloat())
+        }
+        val dataSet = BarDataSet(entries, "Comidas Planificadas")
+        dataSet.color = Color.parseColor("#FFDE59")
+        dataSet.valueTextSize = 10f
+        dataSet.valueTextColor = Color.WHITE
+        val barData = BarData(dataSet)
+        barData.barWidth = 0.8f
+        binding.barChart.apply {
+            data = barData
+            xAxis.apply {
+                valueFormatter = IndexAxisValueFormatter(datos.map { it.dia })
+                position = XAxis.XAxisPosition.TOP
+                granularity = 1f
+                isGranularityEnabled = true
+                textSize = 10f
+                textColor = Color.WHITE
+                setDrawGridLines(false)
+            }
+            axisLeft.apply {
+                axisMinimum = 0f
+                granularity = 1f
+                textSize = 10f
+            }
+            axisRight.isEnabled = false
+            description.isEnabled = false
+            legend.isEnabled = true
+            setFitBars(true)
+            animateY(1000)
+            invalidate()
+        }
+    }
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

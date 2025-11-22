@@ -17,7 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.example.smartmealsproyecto.databinding.FragmentListaComprasBottomSheetBinding
 import kotlinx.coroutines.launch
 
-class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment() {
+class DetalleAgenda(private var fechaSelec: String,private val cargarOtraVez: () -> Unit) : BottomSheetDialogFragment() {
 
     private var _binding: FragmentDetalleAgendaBinding? = null
     private val binding get() = _binding!!
@@ -62,7 +62,10 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
             binding.spinnerRecetas.adapter = adapter
             binding.spinnerRecetas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                    if (position == 0) return
+                    if (position == 0) {
+                        nombre = ""
+                        return
+                    }
                     nombre = recetasConPlaceholder[position]
                     idR = idConPlaceholder[position]
 
@@ -71,11 +74,18 @@ class DetalleAgenda(private var fechaSelec: String) : BottomSheetDialogFragment(
             }
         }
         binding.agregaRec.setOnClickListener {
-            val dialog = AgregarRecetaAgenda(RecetasList ,fechaSelec,idR, nombre,{
-                binding.recyclerViewRecetasD.adapter?.notifyDataSetChanged()
-            })
-            dialog.show(childFragmentManager, "AddProductDialog")
-            binding.spinnerRecetas.setSelection(0)
+            if(nombre == ""){
+                Toast.makeText(context, "Selecciona Primero una Receta", Toast.LENGTH_SHORT).show()
+            }
+            else {
+                val dialog = AgregarRecetaAgenda(RecetasList, fechaSelec, idR, nombre, {
+                    binding.recyclerViewRecetasD.adapter?.notifyDataSetChanged()
+                },{
+                    cargarOtraVez()
+                })
+                dialog.show(childFragmentManager, "AddProductDialog")
+                binding.spinnerRecetas.setSelection(0)
+            }
         }
     }
     private fun eliminarRec(receta: ClassDetAgenda){
