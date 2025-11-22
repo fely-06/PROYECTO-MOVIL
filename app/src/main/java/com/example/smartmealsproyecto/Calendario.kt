@@ -4,9 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.smartmealsproyecto.databinding.FragmentCalendarioBinding
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -38,10 +42,33 @@ class Calendario : Fragment() {
         var planear: Boolean = false
         var fechaInicio: LocalDate? = null
         var fechaLimite: LocalDate? = null
-        binding.buttonMostrarListaCompras.setOnClickListener {
-            //val bottomSheet = ListaComprasBottomSheetFragment()
-            ///bottomSheet.show(parentFragmentManager, "lista_compras")
+        val crud = ClaseCRUD(requireContext())
+
+        // Obtener y mostrar listas
+        lifecycleScope.launch {
+            val nombres = crud.obtenerNombresListasPorUsuario(ClaseUsuario.iduser)
+            val nombresConPlaceholder = listOf("Seleccionar lista...") + nombres
+
+            val adapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                nombresConPlaceholder
+            )
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            binding.spinnerListas.adapter = adapter
+            binding.spinnerListas.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                    if (position == 0) return
+
+                    val nombre = nombresConPlaceholder[position]
+                    val bottomSheet = ListaComprasBottomSheetFragment("", "", nombre)
+                    bottomSheet.show(parentFragmentManager, "lista_compras")
+                    binding.spinnerListas.setSelection(0)
+                }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
+            }
         }
+
         binding.btnplanear.setOnClickListener {
             planear = true;
             Toast.makeText(requireContext(), "Seleccione la fecha de inicio", Toast.LENGTH_SHORT).show()
@@ -79,7 +106,7 @@ class Calendario : Fragment() {
                         Toast.makeText(requireContext(), "No se permiten fechas anteriores a la inicial", Toast.LENGTH_SHORT).show()
                     }
                     else{
-                        val bottomSheet = ListaComprasBottomSheetFragment(fechaLimite.toString(), fechaInicio.toString())
+                        val bottomSheet = ListaComprasBottomSheetFragment(fechaLimite.toString(), fechaInicio.toString(), "")
                         bottomSheet.show(parentFragmentManager, "lista_compras")
                         planear = false
                         fechaLimite = null

@@ -63,18 +63,17 @@
         android:textColor="@color/NaranjaFuerte"
         android:textStyle="bold"
         android:textSize="15sp"/>
-    <Button
-        android:id="@+id/buttonMostrarListaCompras"
+    <Spinner
+        android:id="@+id/spinnerListas"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:text="Ver Mis Listas"
-        android:backgroundTint="@color/AmarilloClaro"
-        android:textColor="@color/NaranjaFuerte"
-        android:textStyle="bold"
-        android:textSize="15sp"/>
+        android:paddingStart="20dp"
+        android:background="@drawable/editext_redondeado"
+        android:textSize="15sp"
+        />
 
     </LinearLayout>
 

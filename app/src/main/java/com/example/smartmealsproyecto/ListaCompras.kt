@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,7 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: String) : BottomSheetDialogFragment() {
+class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: String, var nombreLista: String) : BottomSheetDialogFragment() {
 
     private lateinit var recyclerView: RecyclerView
     private val IngredientesFaltantes = mutableListOf<ClaseCRUD.ItemListaCompra>()
@@ -42,11 +43,27 @@ class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: Str
         crud.iniciarBD()
         lifecycleScope.launch {
             //val fechaHoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            crud.generarSugerenciasMapeo(fechaInicio, fechaLim)
-            val EncabezadoLista = crud.obtenerDatosLita()
-            binding.nombrelista.text = EncabezadoLista.nombre
-            IngredientesFaltantes.clear()
-            IngredientesFaltantes.addAll(crud.obtenerLista())
+            if(fechaLim!="" && fechaInicio!=""){
+                crud.generarSugerenciasMapeo(fechaInicio, fechaLim)
+                val EncabezadoLista = crud.obtenerDatosLita()
+                binding.nombrelista.text = EncabezadoLista.nombre
+                IngredientesFaltantes.clear()
+                IngredientesFaltantes.addAll(crud.obtenerLista())
+                binding.btnguardar.isVisible = true
+                binding.btncancelar.isVisible = true
+                binding.mensaje.isVisible = true
+            }else{
+                val items  = crud.obtenerItemsDeListaPorNombre(ClaseUsuario.iduser, nombreLista)
+                binding.nombrelista.text = nombreLista
+                IngredientesFaltantes.clear()
+                IngredientesFaltantes.addAll(items)
+                binding.btnguardar.isVisible = false
+                binding.btncancelar.isVisible = false
+                binding.mensaje.isVisible = false
+                if (items.isEmpty()) {
+                    Toast.makeText(requireContext(), "Esta lista está vacía", Toast.LENGTH_SHORT).show()
+                }
+            }
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
             recyclerView.adapter = ListaAdap(IngredientesFaltantes)
             recyclerView.adapter?.notifyDataSetChanged()

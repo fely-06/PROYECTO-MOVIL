@@ -1010,8 +1010,6 @@ class ClaseCRUD(private val context: Context) {
     suspend fun obtenerDatosLita(): ListaCompraTemporal{
         return ListaCompraTemporal
     }
-
-
     fun guardarListaCompraBD(
         lista: ListaCompraTemporal,
         onReemplazoNecesario: (confirmar: () -> Unit) -> Unit
@@ -1150,5 +1148,29 @@ class ClaseCRUD(private val context: Context) {
         }
 
         return nombres
+    }
+    fun obtenerItemsDeListaPorNombre(idUsuario: Int, nombreLista: String): List<ItemListaCompra> {
+        val db = dbHelper.readableDatabase
+        val items = mutableListOf<ItemListaCompra>()
+
+        val query = """
+        SELECT i.nombreIngrediente, i.cantidad, i.unidad, i.comprado
+        FROM ListaCompraIngrediente i
+        JOIN ListaCompra l ON i.idLista = l.idLista
+        WHERE l.idUsuario = ? AND l.nombre = ?
+        """.trimIndent()
+
+        db.rawQuery(query, arrayOf(idUsuario.toString(), nombreLista)).use { cursor ->
+            while (cursor.moveToNext()) {
+                val nombre = cursor.getString(0)
+                val cantidad = cursor.getDouble(1)
+                val unidad = cursor.getString(2)
+                val comprado = cursor.getInt(3) == 1
+
+                items.add(ItemListaCompra(nombre, cantidad, unidad, comprado = comprado))
+            }
+        }
+
+        return items
     }
 }

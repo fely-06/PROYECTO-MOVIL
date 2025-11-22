@@ -38,6 +38,7 @@
             android:layout_height="wrap_content"/>
     </ScrollView>
     <TextView
+        android:id="@+id/mensaje"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Antes de Guardar, hacer las modificaciones que se crean necesarias :)"
