@@ -1258,7 +1258,184 @@ class ClaseCRUD(private val context: Context) {
 
         return items
     }
+    // Agregar esta función en ClaseCRUD.kt
 
+    suspend fun procesarIngredientesReceta(idReceta: Int, fecha: String) = withContext(Dispatchers.IO) {
+        val db = dbHelper.readableDatabase
+
+        try {
+            // 1. Obtener ingredientes de la receta
+            val ingredientesReceta = mutableListOf<ingredientesNec>()
+            val cursorIngredientes = db.rawQuery(
+                "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
+                arrayOf(idReceta.toString())
+            )
+
+            with(cursorIngredientes) {
+                while (moveToNext()) {
+                    val nombre = getString(0)
+                    val cantidad = getDouble(1)
+                    val unidad = getString(2)
+                    ingredientesReceta.add(ingredientesNec(nombre, cantidad, unidad))
+                }
+                close()
+            }
+
+            // 2. Obtener inventario actual y mapeos
+            val inventario = IngredientesEnInventario().associateByTo(mutableMapOf()) {
+                it.nombre.lowercase().trim()
+            }
+            val mapeos = IngredientesMapeados().associateBy {
+                it.nombreReceta.lowercase().trim()
+            }
+
+            // 3. Lista temporal para ingredientes faltantes
+            val faltantes = mutableListOf<ItemListaCompra>()
+
+            // 4. Procesar cada ingrediente de la receta
+            for (ingrediente in ingredientesReceta) {
+                var nombreBusqueda = ingrediente.nombre.lowercase().trim()
+                val cantidadNecesaria = ingrediente.cantidad
+                val unidadNecesaria = ingrediente.unidad.lowercase().trim()
+
+                // Verificar si tiene mapeo
+                if (mapeos.containsKey(nombreBusqueda)) {
+                    nombreBusqueda = mapeos[nombreBusqueda]!!.nombreInventario.lowercase().trim()
+                }
+
+                // Verificar si existe en inventario
+                if (inventario.containsKey(nombreBusqueda)) {
+                    val productoInventario = inventario[nombreBusqueda]!!
+                    val cantidadDisponible = productoInventario.cantidad
+                    val unidadDisponible = productoInventario.unidad.lowercase().trim()
+
+                    when (val resultado = verificarInventario(
+                        cantidadNecesaria, unidadNecesaria,
+                        cantidadDisponible, unidadDisponible
+                    )) {
+                        is ResultadoVerificacion.Suficiente -> {
+                            // Hay suficiente en inventario: DEDUCIR
+                            val cantidadEnBase = convertirAUnidadBase(cantidadNecesaria, unidadNecesaria)!!
+                            val nuevaCantidadEnBase = convertirAUnidadBase(
+                                cantidadDisponible, unidadDisponible
+                            )!! - cantidadEnBase
+
+                            val nuevaCantidad = nuevaCantidadEnBase / conversiones[unidadDisponible]!!
+
+                            // Actualizar inventario en BD
+                            withContext(Dispatchers.Main) {
+                                actualizarCantidadInventario(nombreBusqueda, nuevaCantidad, unidadDisponible)
+                            }
+                        }
+
+                        is ResultadoVerificacion.Insuficiente -> {
+                            // No hay suficiente: DEDUCIR lo disponible y agregar faltante a lista
+                            val cantidadNecesariaBase = convertirAUnidadBase(cantidadNecesaria, unidadNecesaria)!!
+                            val cantidadDisponibleBase = convertirAUnidadBase(cantidadDisponible, unidadDisponible)!!
+                            val cantidadFaltante = cantidadNecesariaBase - cantidadDisponibleBase
+
+                            // Convertir faltante a unidad del inventario
+                            val cantidadFaltanteConvertida = cantidadFaltante / conversiones[unidadDisponible]!!
+
+                            // Actualizar inventario a 0
+                            withContext(Dispatchers.Main) {
+                                actualizarCantidadInventario(nombreBusqueda, 0.0, unidadDisponible)
+                            }
+
+                            // Agregar faltante a lista
+                            faltantes.add(ItemListaCompra(
+                                nombreIngrediente = nombreBusqueda,
+                                cantidad = cantidadFaltanteConvertida,
+                                unidad = unidadDisponible,
+                                comprado = false
+                            ))
+                        }
+
+                        is ResultadoVerificacion.Error -> {
+                            // Error de conversión: agregar a lista completo
+                            faltantes.add(ItemListaCompra(
+                                nombreIngrediente = nombreBusqueda,
+                                cantidad = cantidadNecesaria,
+                                unidad = unidadNecesaria,
+                                comprado = false
+                            ))
+                        }
+                    }
+                } else {
+                    // No existe en inventario: agregar a lista de compras
+                    faltantes.add(ItemListaCompra(
+                        nombreIngrediente = nombreBusqueda,
+                        cantidad = cantidadNecesaria,
+                        unidad = unidadNecesaria,
+                        comprado = false
+                    ))
+                }
+            }
+
+            // 5. Si hay faltantes, guardar lista de compras automáticamente
+            if (faltantes.isNotEmpty()) {
+                val nombreLista = "Lista para $fecha"
+                ListaCompraTemporal.idUsuario = ClaseUsuario.iduser
+                ListaCompraTemporal.nombre = nombreLista
+                ListaCompraTemporal.items = faltantes
+
+                withContext(Dispatchers.Main) {
+                    // Guardar sin confirmación (o puedes modificar para pedir confirmación)
+                    insertarNuevaListaBD(ListaCompraTemporal)
+                    Toast.makeText(
+                        context,
+                        "Inventario actualizado. ${faltantes.size} ingredientes agregados a lista de compras",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Inventario actualizado. Todos los ingredientes disponibles",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    "Error al procesar ingredientes: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    // Función auxiliar para actualizar cantidad en inventario
+    suspend fun actualizarCantidadInventario(
+        nombreProducto: String,
+        nuevaCantidad: Double,
+        unidad: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+        try {
+            val values = ContentValues().apply {
+                put("cantidad", nuevaCantidad)
+                put("unidad", unidad)
+            }
+
+            val filasActualizadas = db.update(
+                "Inventario",
+                values,
+                "nombre = ? AND idUsuario = ?",
+                arrayOf(nombreProducto, ClaseUsuario.iduser.toString())
+            )
+
+            filasActualizadas > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
 
 
 }

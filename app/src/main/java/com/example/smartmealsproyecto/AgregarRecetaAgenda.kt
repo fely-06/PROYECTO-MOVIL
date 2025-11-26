@@ -56,6 +56,8 @@ class AgregarRecetaAgenda(
             lifecycleScope.launch {
                 semodifico = crud.insertarRecetaAgenda(idReceta, horaString, n, fechaDetalle, "Merienda")
                 if(semodifico == 1){
+                    crud.procesarIngredientesReceta(idReceta, fechaDetalle)
+
                     lista.clear()
                     lista.addAll(crud.consultarDetalleAgendaPorDia(fechaDetalle))
                     actualiz(lista)
