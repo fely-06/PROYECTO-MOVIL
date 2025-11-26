@@ -54,5 +54,8 @@
 
 ### _Miercoles 19 de Noviembre de 2025_: 
 - Se terminaron todos los cruds.
+### _Martes 25 de Noviembre de 2025_:
+- Descontar Cantidad de ingrediente a inventario desde lista de compras (F).
+- Agregar exceso de Cantidad de ingrediente a inventario desde lista de compras(F).
 
 
