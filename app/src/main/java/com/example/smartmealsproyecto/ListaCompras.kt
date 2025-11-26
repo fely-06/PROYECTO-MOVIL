@@ -5,27 +5,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.example.smartmealsproyecto.databinding.FragmentListaComprasBottomSheetBinding
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
-class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: String, var nombreLista: String) : BottomSheetDialogFragment() {
+class ListaComprasBottomSheetFragment(
+    var fechaLim: String,
+    var fechaInicio: String,
+    var nombreLista: String
+) : BottomSheetDialogFragment() {
 
     private lateinit var recyclerView: RecyclerView
     private val IngredientesFaltantes = mutableListOf<ClaseCRUD.ItemListaCompra>()
     private var _binding: FragmentListaComprasBottomSheetBinding? = null
     private val binding get() = _binding!!
+    private lateinit var crud: ClaseCRUD
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,12 +37,13 @@ class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: Str
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val crud = ClaseCRUD(requireContext())
+        crud = ClaseCRUD(requireContext())
         recyclerView = view.findViewById(R.id.recyclerViewCompras)
         crud.iniciarBD()
+
         lifecycleScope.launch {
-            //val fechaHoy = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-            if(fechaLim!="" && fechaInicio!=""){
+            if(fechaLim != "" && fechaInicio != "") {
+                // Modo generación de lista
                 crud.generarSugerenciasMapeo(fechaInicio, fechaLim)
                 val EncabezadoLista = crud.obtenerDatosLita()
                 binding.nombrelista.text = EncabezadoLista.nombre
@@ -52,22 +52,33 @@ class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: Str
                 binding.btnguardar.isVisible = true
                 binding.btncancelar.isVisible = true
                 binding.mensaje.isVisible = true
-            }else{
-                val items  = crud.obtenerItemsDeListaPorNombre(ClaseUsuario.iduser, nombreLista)
+            } else {
+                // Modo ver lista existente
+                val items = crud.obtenerItemsDeListaPorNombre(ClaseUsuario.iduser, nombreLista)
                 binding.nombrelista.text = nombreLista
                 IngredientesFaltantes.clear()
                 IngredientesFaltantes.addAll(items)
                 binding.btnguardar.isVisible = false
                 binding.btncancelar.isVisible = false
                 binding.mensaje.isVisible = false
+
                 if (items.isEmpty()) {
                     Toast.makeText(requireContext(), "Esta lista está vacía", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            // Configurar RecyclerView con el nuevo adapter
             recyclerView.layoutManager = LinearLayoutManager(requireContext())
-            recyclerView.adapter = ListaAdap(IngredientesFaltantes)
+            recyclerView.adapter = ListaAdap(
+                productos = IngredientesFaltantes,
+                unidadesMed = crud.unidadesMed,
+                onAgregarInventario = { itemConDatos ->
+                    agregarAlInventario(itemConDatos)
+                }
+            )
             recyclerView.adapter?.notifyDataSetChanged()
         }
+
         binding.btnguardar.setOnClickListener {
             crud.guardarListaCompraBD(
                 lista = ClaseCRUD.ListaCompraTemporal,
@@ -83,8 +94,26 @@ class ListaComprasBottomSheetFragment(var fechaLim: String, var fechaInicio: Str
             }
             dismiss()
         }
+
         binding.btncancelar.setOnClickListener {
             dismiss()
+        }
+    }
+
+    private fun agregarAlInventario(itemConDatos: ListaAdap.ItemCompraConDatos) {
+        lifecycleScope.launch {
+            val exitoso = crud.agregarExcedenteInventario(
+                nombreIngrediente = itemConDatos.nombreIngrediente,
+                cantidadNecesaria = itemConDatos.cantidadNecesaria,
+                unidadNecesaria = itemConDatos.unidadNecesaria,
+                cantidadComprada = itemConDatos.cantidadComprada,
+                unidadComprada = itemConDatos.unidadComprada
+            )
+
+            if (exitoso) {
+                // Actualizar la UI
+                recyclerView.adapter?.notifyDataSetChanged()
+            }
         }
     }
 

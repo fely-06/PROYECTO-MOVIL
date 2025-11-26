@@ -1258,13 +1258,12 @@ class ClaseCRUD(private val context: Context) {
 
         return items
     }
-    // Agregar esta función en ClaseCRUD.kt
+
 
     suspend fun procesarIngredientesReceta(idReceta: Int, fecha: String) = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
 
         try {
-            // 1. Obtener ingredientes de la receta
             val ingredientesReceta = mutableListOf<ingredientesNec>()
             val cursorIngredientes = db.rawQuery(
                 "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
@@ -1281,24 +1280,19 @@ class ClaseCRUD(private val context: Context) {
                 close()
             }
 
-            // 2. Obtener inventario actual y mapeos
-            val inventario = IngredientesEnInventario().associateByTo(mutableMapOf()) {
+           val inventario = IngredientesEnInventario().associateByTo(mutableMapOf()) {
                 it.nombre.lowercase().trim()
             }
             val mapeos = IngredientesMapeados().associateBy {
                 it.nombreReceta.lowercase().trim()
             }
-
-            // 3. Lista temporal para ingredientes faltantes
             val faltantes = mutableListOf<ItemListaCompra>()
 
-            // 4. Procesar cada ingrediente de la receta
             for (ingrediente in ingredientesReceta) {
                 var nombreBusqueda = ingrediente.nombre.lowercase().trim()
                 val cantidadNecesaria = ingrediente.cantidad
                 val unidadNecesaria = ingrediente.unidad.lowercase().trim()
 
-                // Verificar si tiene mapeo
                 if (mapeos.containsKey(nombreBusqueda)) {
                     nombreBusqueda = mapeos[nombreBusqueda]!!.nombreInventario.lowercase().trim()
                 }
@@ -1371,9 +1365,7 @@ class ClaseCRUD(private val context: Context) {
                     ))
                 }
             }
-
-            // 5. Si hay faltantes, guardar lista de compras automáticamente
-            if (faltantes.isNotEmpty()) {
+                if (faltantes.isNotEmpty()) {
                 val nombreLista = "Lista para $fecha"
                 ListaCompraTemporal.idUsuario = ClaseUsuario.iduser
                 ListaCompraTemporal.nombre = nombreLista
@@ -1434,6 +1426,161 @@ class ClaseCRUD(private val context: Context) {
         } catch (e: Exception) {
             e.printStackTrace()
             false
+        }
+    }
+    /// agregar a invntario desde lista de compras
+    suspend fun agregarExcedenteInventario(
+        nombreIngrediente: String,
+        cantidadNecesaria: Double,
+        unidadNecesaria: String,
+        cantidadComprada: Double,
+        unidadComprada: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+
+        try {
+            // Convertir ambas cantidades a unidad base para comparar
+            val necesariaEnBase = convertirAUnidadBase(cantidadNecesaria, unidadNecesaria)
+            val compradaEnBase = convertirAUnidadBase(cantidadComprada, unidadComprada)
+
+            if (necesariaEnBase == null || compradaEnBase == null) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: Unidades no compatibles", Toast.LENGTH_SHORT).show()
+                }
+                return@withContext false
+            }
+
+            // Calcular excedente en unidad base
+            val excedenteEnBase = compradaEnBase - necesariaEnBase
+
+            if (excedenteEnBase < 0) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "La cantidad comprada es menor a la necesaria. Se agregará lo comprado.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                // Agregar lo que se compró aunque sea menos
+                return@withContext agregarOActualizarInventario(
+                    nombreIngrediente,
+                    cantidadComprada,
+                    unidadComprada
+                )
+            } else if (excedenteEnBase == 0.0) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Cantidad exacta. No hay excedente para agregar al inventario.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return@withContext true
+            }
+
+            // Hay excedente: convertir a la unidad comprada y agregar al inventario
+            val excedenteEnUnidadComprada = excedenteEnBase / conversiones[unidadComprada.lowercase().trim()]!!
+
+            val agregado = agregarOActualizarInventario(
+                nombreIngrediente,
+                excedenteEnUnidadComprada,
+                unidadComprada
+            )
+
+            if (agregado) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        context,
+                        "Se agregaron ${String.format("%.2f", excedenteEnUnidadComprada)} $unidadComprada al inventario",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+            return@withContext agregado
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    context,
+                    "Error al procesar: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            return@withContext false
+        }
+    }
+ private suspend fun agregarOActualizarInventario(
+        nombre: String,
+        cantidad: Double,
+        unidad: String
+    ): Boolean = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+
+        try {
+            // Verificar si ya existe
+            val cursor = db.rawQuery(
+                "SELECT idProducto, cantidad, unidad FROM Inventario WHERE nombre = ? AND idUsuario = ?",
+                arrayOf(nombre, ClaseUsuario.iduser.toString())
+            )
+
+            val existe = cursor.moveToFirst()
+
+            if (existe) {
+                // Actualizar: sumar a la cantidad existente
+                val idProducto = cursor.getInt(0)
+                val cantidadActual = cursor.getDouble(1)
+                val unidadActual = cursor.getString(2)
+                cursor.close()
+
+                // Si las unidades son diferentes, convertir
+                val cantidadASumar = if (unidad.equals(unidadActual, ignoreCase = true)) {
+                    cantidadActual + cantidad
+                } else {
+                    // Convertir a unidad base y luego a unidad actual
+                    val cantidadEnBase = convertirAUnidadBase(cantidad, unidad)
+                    val cantidadActualEnBase = convertirAUnidadBase(cantidadActual, unidadActual)
+
+                    if (cantidadEnBase != null && cantidadActualEnBase != null) {
+                        val totalEnBase = cantidadEnBase + cantidadActualEnBase
+                        totalEnBase / conversiones[unidadActual.lowercase().trim()]!!
+                    } else {
+                        cantidadActual + cantidad // Si no se puede convertir, usar la cantidad directamente
+                    }
+                }
+
+                val values = ContentValues().apply {
+                    put("cantidad", cantidadASumar)
+                }
+
+                val updated = db.update(
+                    "Inventario",
+                    values,
+                    "idProducto = ?",
+                    arrayOf(idProducto.toString())
+                )
+
+                return@withContext updated > 0
+
+            } else {
+                cursor.close()
+                // Insertar nuevo producto
+                val values = ContentValues().apply {
+                    put("idUsuario", ClaseUsuario.iduser)
+                    put("nombre", nombre)
+                    put("cantidad", cantidad)
+                    put("unidad", unidad.lowercase().trim())
+                    put("codigoBarras", "")
+                }
+
+                val inserted = db.insert("Inventario", null, values)
+                return@withContext inserted > 0
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return@withContext false
         }
     }
 
