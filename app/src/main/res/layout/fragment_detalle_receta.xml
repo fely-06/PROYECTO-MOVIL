@@ -23,7 +23,65 @@
             android:textColor="@color/amarillo"
             android:gravity="center"
             android:layout_marginBottom="24dp" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="@color/AmarilloClaro"
+            app:cardElevation="4dp">
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Foto de la receta"
+                    android:textColor="@color/NaranjaFuerte"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Imagen preview -->
+                <FrameLayout
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:id="@+id/imageViewReceta"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:contentDescription="Imagen de la receta" />
+
+                    <TextView
+                        android:id="@+id/textViewNoImagen"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="Sin imagen"
+                        android:gravity="center"
+                        android:textColor="@color/AmarilloClaro"
+                        android:background="@color/NaranjaFuerte"
+                        android:textSize="14sp" />
+                </FrameLayout>
+
+                <Button
+                    android:id="@+id/buttonCambiarImagen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="📷 Cambiar Imagen"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
         <!-- Nombre -->
         <TextView
             android:layout_width="wrap_content"

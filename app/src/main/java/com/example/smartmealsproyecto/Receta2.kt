@@ -8,4 +8,5 @@ data class Receta2(
     val tiempoPreparacion: Int,
     val esGlobal: Boolean,
     val favorita: Boolean = false,
+    val imagenRuta: String? = null
 )

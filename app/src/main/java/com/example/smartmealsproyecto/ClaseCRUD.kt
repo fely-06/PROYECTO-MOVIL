@@ -131,242 +131,6 @@ class ClaseCRUD(private val context: Context) {
 
     // ============ OBTENER RECETAS GLOBALES ============
 
-    suspend fun obtenerRecetasGlobales(
-        recetasList: MutableList<Receta2>,
-        recetasListOriginal: MutableList<Receta2>
-    ) = withContext(Dispatchers.IO) {
-        val db = dbHelper.readableDatabase
-        val query = """
-            SELECT 
-                r.idReceta, 
-                r.idUsuario, 
-                r.nombre, 
-                r.descripcion, 
-                r.tiempoPreparacion, 
-                r.esGlobal,
-                CASE 
-                    WHEN rg.idReceta IS NOT NULL THEN 1 
-                    ELSE 0 
-                END AS favorita
-            FROM Receta r
-            LEFT JOIN RecetaGuardada rg 
-                ON r.idReceta = rg.idReceta 
-                AND rg.idUsuario = ?
-            WHERE r.esGlobal = 1
-        """.trimIndent()
-
-        val cursor = db.rawQuery(query, arrayOf(ClaseUsuario.iduser.toString()))
-        val tempList = mutableListOf<Receta2>()
-
-        try {
-            while (cursor.moveToNext()) {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow("idReceta"))
-                val idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("idUsuario"))
-                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")) ?: ""
-                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion")) ?: ""
-                val tiempo = cursor.getInt(cursor.getColumnIndexOrThrow("tiempoPreparacion"))
-                val esGlobal = cursor.getInt(cursor.getColumnIndexOrThrow("esGlobal")) == 1
-                val favorita = cursor.getInt(cursor.getColumnIndexOrThrow("favorita")) == 1
-
-                tempList.add(Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita))
-            }
-        } finally {
-            cursor.close()
-        }
-
-        withContext(Dispatchers.Main) {
-            recetasList.clear()
-            recetasList.addAll(tempList)
-            recetasListOriginal.clear()
-            recetasListOriginal.addAll(tempList)
-        }
-    }
-
-    // ============ OBTENER MIS RECETAS ============
-
-    suspend fun obtenerMisRecetas(
-        recetasList: MutableList<Receta2>,
-        recetasListOriginal: MutableList<Receta2>
-    ) = withContext(Dispatchers.IO) {
-        val userId = ClaseUsuario.iduser
-        val db = dbHelper.readableDatabase
-
-        // Query corregido: Recetas propias + globales favoritas
-        val query = """
-            SELECT DISTINCT r.idReceta, r.idUsuario, r.nombre,r.descripcion,r.tiempoPreparacion,r.esGlobal,
-            CASE 
-                WHEN rg.idReceta IS NOT NULL THEN 1 
-                ELSE 0 
-            END AS favorita 
-            FROM Receta r
-            LEFT JOIN RecetaGuardada rg 
-        ON r.idReceta = rg.idReceta AND rg.idUsuario = ?
-        WHERE 
-        (r.idUsuario = ?  and r.esGlobal = 0)           
-        OR rg.idUsuario = ?;
-        """.trimIndent()
-
-        val cursor = db.rawQuery(query, arrayOf(ClaseUsuario.iduser.toString(),ClaseUsuario.iduser.toString(),ClaseUsuario.iduser.toString()))
-        val tempList = mutableListOf<Receta2>()
-
-        try {
-            while (cursor.moveToNext()) {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow("idReceta"))
-                val idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("idUsuario"))
-                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")) ?: ""
-                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion")) ?: ""
-                val tiempo = cursor.getInt(cursor.getColumnIndexOrThrow("tiempoPreparacion"))
-                val esGlobal = cursor.getInt(cursor.getColumnIndexOrThrow("esGlobal")) == 1
-                val favorita = cursor.getInt(cursor.getColumnIndexOrThrow("favorita")) == 1
-
-                tempList.add(Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita))
-            }
-        } finally {
-            cursor.close()
-        }
-
-        withContext(Dispatchers.Main) {
-            recetasList.clear()
-            recetasList.addAll(tempList)
-            recetasListOriginal.clear()
-            recetasListOriginal.addAll(tempList)
-        }
-    }
-    suspend fun crearReceta(receta: Receta2, ingredientes: List<Ingrediente>): Long =
-        withContext(Dispatchers.IO) {
-            val db = dbHelper.writableDatabase
-            try {
-                db.beginTransaction()
-
-                val valuesReceta = ContentValues().apply {
-                    put("idUsuario", receta.idUsuario)
-                    put("nombre", receta.nombre)
-                    put("descripcion", receta.descripcion ?: "")
-                    put("tiempoPreparacion", receta.tiempoPreparacion)
-                    put("esGlobal", if (receta.esGlobal) 1 else 0)
-                    // ✅ NO incluir 'favorita'
-                }
-
-                val idReceta = db.insert("Receta", null, valuesReceta)
-                if (idReceta == -1L) {
-                    throw SQLException("No se pudo insertar la receta")
-                }
-
-                for (ing in ingredientes) {
-                    val valuesIng = ContentValues().apply {
-                        put("idReceta", idReceta)
-                        put("nombre", ing.nombre)
-                        put("cantidad", ing.cantidad)
-                        put("unidad", ing.unidad)
-                    }
-                    if (db.insert("Ingrediente", null, valuesIng) == -1L) {
-                        throw SQLException("Error al insertar ingrediente: ${ing.nombre}")
-                    }
-                }
-
-                db.setTransactionSuccessful()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Receta creada exitosamente", Toast.LENGTH_SHORT).show()
-                }
-                idReceta
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al crear receta: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-                -1L
-            } finally {
-                db.endTransaction()
-            }
-        }
-
-    suspend fun actualizarReceta(receta: Receta2, ingredientes: List<Ingrediente>): Boolean =
-        withContext(Dispatchers.IO) {
-            val db = dbHelper.writableDatabase
-            try {
-                db.beginTransaction()
-
-                val valuesReceta = ContentValues().apply {
-                    put("nombre", receta.nombre)
-                    put("descripcion", receta.descripcion ?: "")
-                    put("tiempoPreparacion", receta.tiempoPreparacion)
-                    put("esGlobal", if (receta.esGlobal) 1 else 0)
-                    // ✅ NO incluir 'favorita'
-                }
-
-                val rowsReceta = db.update(
-                    "Receta",
-                    valuesReceta,
-                    "idReceta = ?",
-                    arrayOf(receta.id.toString())
-                )
-
-                if (rowsReceta == 0) {
-                    throw SQLException("No se encontró la receta con ID: ${receta.id}")
-                }
-
-                db.delete("Ingrediente", "idReceta = ?", arrayOf(receta.id.toString()))
-
-                for (ing in ingredientes) {
-                    val valuesIng = ContentValues().apply {
-                        put("idReceta", receta.id)
-                        put("nombre", ing.nombre)
-                        put("cantidad", ing.cantidad)
-                        put("unidad", ing.unidad)
-                    }
-                    if (db.insert("Ingrediente", null, valuesIng) == -1L) {
-                        throw SQLException("Error al actualizar ingrediente: ${ing.nombre}")
-                    }
-                }
-
-                db.setTransactionSuccessful()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Receta actualizada exitosamente", Toast.LENGTH_SHORT).show()
-                }
-                true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-                false
-            } finally {
-                db.endTransaction()
-            }
-        }
-
-    suspend fun eliminarReceta(idReceta: Int): Boolean = withContext(Dispatchers.IO) {
-        val db = dbHelper.writableDatabase
-        try {
-            db.beginTransaction()
-
-            // ✅ Eliminar de RecetaGuardada primero (si existe)
-            db.delete("RecetaGuardada", "idReceta = ?", arrayOf(idReceta.toString()))
-
-            // Eliminar ingredientes
-            db.delete("Ingrediente", "idReceta = ?", arrayOf(idReceta.toString()))
-
-            // Eliminar receta
-            val rowsReceta = db.delete("Receta", "idReceta = ?", arrayOf(idReceta.toString()))
-            if (rowsReceta == 0) {
-                throw SQLException("No se encontró la receta con ID: $idReceta")
-            }
-
-            db.setTransactionSuccessful()
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Receta eliminada exitosamente", Toast.LENGTH_SHORT).show()
-            }
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Error al eliminar: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-            false
-        } finally {
-            db.endTransaction()
-        }
-    }
     //////////////////////////////USUARIOS/////////////////////////////////////
     suspend fun insertarUsuario(nombre: String, contraseña: String): Int{
         var db: SQLiteDatabase? = null
@@ -965,7 +729,6 @@ class ClaseCRUD(private val context: Context) {
         data class Insuficiente(val faltante: Double) : ResultadoVerificacion()
         data class Error(val mensaje: String) : ResultadoVerificacion()
     }
-
     data class ItemListaCompra(
         val nombreIngrediente: String,
         val cantidad: Double,
@@ -979,8 +742,6 @@ class ClaseCRUD(private val context: Context) {
         var nombre: String = ""
         var items: List<ItemListaCompra> = emptyList()
     }
-
-
     suspend fun generarSugerenciasMapeo(fechaInicio: String, fechaFin: String): List<IngredienteParaMapear> {
         val ingredientesRequeridos = IngredientesRequeridos(fechaInicio, fechaFin)
         val inventarioNombres = IngredientesEnInventario().map { it.nombre.lowercase().trim() }
@@ -1401,9 +1162,7 @@ class ClaseCRUD(private val context: Context) {
             }
         }
     }
-
-    // Función auxiliar para actualizar cantidad en inventario
-    suspend fun actualizarCantidadInventario(
+  suspend fun actualizarCantidadInventario(
         nombreProducto: String,
         nuevaCantidad: Double,
         unidad: String
@@ -1428,7 +1187,6 @@ class ClaseCRUD(private val context: Context) {
             false
         }
     }
-    /// agregar a invntario desde lista de compras
     suspend fun agregarExcedenteInventario(
         nombreIngrediente: String,
         cantidadNecesaria: Double,
@@ -1584,5 +1342,301 @@ class ClaseCRUD(private val context: Context) {
         }
     }
 
+    suspend fun crearReceta(receta: Receta2, ingredientes: List<Ingrediente>): Long =
+        withContext(Dispatchers.IO) {
+            val db = dbHelper.writableDatabase
+            try {
+                db.beginTransaction()
 
+                val valuesReceta = ContentValues().apply {
+                    put("idUsuario", receta.idUsuario)
+                    put("nombre", receta.nombre)
+                    put("descripcion", receta.descripcion ?: "")
+                    put("tiempoPreparacion", receta.tiempoPreparacion)
+                    put("esGlobal", if (receta.esGlobal) 1 else 0)
+                    put("imagenRuta", receta.imagenRuta)
+                }
+
+                val idReceta = db.insert("Receta", null, valuesReceta)
+                if (idReceta == -1L) {
+                    throw SQLException("No se pudo insertar la receta")
+                }
+
+                for (ing in ingredientes) {
+                    val valuesIng = ContentValues().apply {
+                        put("idReceta", idReceta)
+                        put("nombre", ing.nombre)
+                        put("cantidad", ing.cantidad)
+                        put("unidad", ing.unidad)
+                    }
+                    if (db.insert("Ingrediente", null, valuesIng) == -1L) {
+                        throw SQLException("Error al insertar ingrediente: ${ing.nombre}")
+                    }
+                }
+
+                db.setTransactionSuccessful()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Receta creada exitosamente", Toast.LENGTH_SHORT).show()
+                }
+                idReceta
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al crear receta: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                -1L
+            } finally {
+                db.endTransaction()
+            }
+        }
+
+    suspend fun actualizarReceta(receta: Receta2, ingredientes: List<Ingrediente>): Boolean =
+        withContext(Dispatchers.IO) {
+            val db = dbHelper.writableDatabase
+            try {
+                db.beginTransaction()
+
+                val valuesReceta = ContentValues().apply {
+                    put("nombre", receta.nombre)
+                    put("descripcion", receta.descripcion ?: "")
+                    put("tiempoPreparacion", receta.tiempoPreparacion)
+                    put("esGlobal", if (receta.esGlobal) 1 else 0)
+                    put("imagenRuta", receta.imagenRuta) // 🆕 Agregado
+                }
+
+                val rowsReceta = db.update(
+                    "Receta",
+                    valuesReceta,
+                    "idReceta = ?",
+                    arrayOf(receta.id.toString())
+                )
+
+                if (rowsReceta == 0) {
+                    throw SQLException("No se encontró la receta con ID: ${receta.id}")
+                }
+
+                db.delete("Ingrediente", "idReceta = ?", arrayOf(receta.id.toString()))
+
+                for (ing in ingredientes) {
+                    val valuesIng = ContentValues().apply {
+                        put("idReceta", receta.id)
+                        put("nombre", ing.nombre)
+                        put("cantidad", ing.cantidad)
+                        put("unidad", ing.unidad)
+                    }
+                    if (db.insert("Ingrediente", null, valuesIng) == -1L) {
+                        throw SQLException("Error al actualizar ingrediente: ${ing.nombre}")
+                    }
+                }
+
+                db.setTransactionSuccessful()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Receta actualizada exitosamente", Toast.LENGTH_SHORT).show()
+                }
+                true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                false
+            } finally {
+                db.endTransaction()
+            }
+        }
+  suspend fun eliminarReceta(idReceta: Int): Boolean = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+        try {
+            db.beginTransaction()
+
+
+            eliminarImagenReceta(idReceta)
+
+            // Eliminar de RecetaGuardada primero
+            db.delete("RecetaGuardada", "idReceta = ?", arrayOf(idReceta.toString()))
+
+            // Eliminar ingredientes
+            db.delete("Ingrediente", "idReceta = ?", arrayOf(idReceta.toString()))
+
+            // Eliminar receta
+            val rowsReceta = db.delete("Receta", "idReceta = ?", arrayOf(idReceta.toString()))
+            if (rowsReceta == 0) {
+                throw SQLException("No se encontró la receta con ID: $idReceta")
+            }
+
+            db.setTransactionSuccessful()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Receta eliminada exitosamente", Toast.LENGTH_SHORT).show()
+            }
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Error al eliminar: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+            false
+        } finally {
+            db.endTransaction()
+        }
+    }
+   suspend fun obtenerRecetasGlobales(
+        recetasList: MutableList<Receta2>,
+        recetasListOriginal: MutableList<Receta2>
+    ) = withContext(Dispatchers.IO) {
+        val db = dbHelper.readableDatabase
+        val query = """
+        SELECT 
+            r.idReceta, 
+            r.idUsuario, 
+            r.nombre, 
+            r.descripcion, 
+            r.tiempoPreparacion, 
+            r.esGlobal,
+            r.imagenRuta,
+            CASE 
+                WHEN rg.idReceta IS NOT NULL THEN 1 
+                ELSE 0 
+            END AS favorita
+        FROM Receta r
+        LEFT JOIN RecetaGuardada rg 
+            ON r.idReceta = rg.idReceta 
+            AND rg.idUsuario = ?
+        WHERE r.esGlobal = 1
+    """.trimIndent()
+
+        val cursor = db.rawQuery(query, arrayOf(ClaseUsuario.iduser.toString()))
+        val tempList = mutableListOf<Receta2>()
+
+        try {
+            while (cursor.moveToNext()) {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("idReceta"))
+                val idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("idUsuario"))
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")) ?: ""
+                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion")) ?: ""
+                val tiempo = cursor.getInt(cursor.getColumnIndexOrThrow("tiempoPreparacion"))
+                val esGlobal = cursor.getInt(cursor.getColumnIndexOrThrow("esGlobal")) == 1
+                val imagenRuta = cursor.getString(cursor.getColumnIndexOrThrow("imagenRuta")) // 🆕
+                val favorita = cursor.getInt(cursor.getColumnIndexOrThrow("favorita")) == 1
+
+                tempList.add(Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita, imagenRuta))
+            }
+        } finally {
+            cursor.close()
+        }
+
+        withContext(Dispatchers.Main) {
+            recetasList.clear()
+            recetasList.addAll(tempList)
+            recetasListOriginal.clear()
+            recetasListOriginal.addAll(tempList)
+        }
+    }
+
+    suspend fun obtenerMisRecetas(
+        recetasList: MutableList<Receta2>,
+        recetasListOriginal: MutableList<Receta2>
+    ) = withContext(Dispatchers.IO) {
+        val db = dbHelper.readableDatabase
+
+        val query = """
+        SELECT DISTINCT 
+            r.idReceta, 
+            r.idUsuario, 
+            r.nombre,
+            r.descripcion,
+            r.tiempoPreparacion,
+            r.esGlobal,
+            r.imagenRuta,
+            CASE 
+                WHEN rg.idReceta IS NOT NULL THEN 1 
+                ELSE 0 
+            END AS favorita 
+        FROM Receta r
+        LEFT JOIN RecetaGuardada rg 
+            ON r.idReceta = rg.idReceta AND rg.idUsuario = ?
+        WHERE 
+            (r.idUsuario = ? AND r.esGlobal = 0)           
+            OR rg.idUsuario = ?
+    """.trimIndent()
+
+        val cursor = db.rawQuery(
+            query,
+            arrayOf(
+                ClaseUsuario.iduser.toString(),
+                ClaseUsuario.iduser.toString(),
+                ClaseUsuario.iduser.toString()
+            )
+        )
+        val tempList = mutableListOf<Receta2>()
+
+        try {
+            while (cursor.moveToNext()) {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("idReceta"))
+                val idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("idUsuario"))
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")) ?: ""
+                val descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion")) ?: ""
+                val tiempo = cursor.getInt(cursor.getColumnIndexOrThrow("tiempoPreparacion"))
+                val esGlobal = cursor.getInt(cursor.getColumnIndexOrThrow("esGlobal")) == 1
+                val imagenRuta = cursor.getString(cursor.getColumnIndexOrThrow("imagenRuta"))
+                val favorita = cursor.getInt(cursor.getColumnIndexOrThrow("favorita")) == 1
+
+                tempList.add(Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita, imagenRuta))
+            }
+        } finally {
+            cursor.close()
+        }
+
+        withContext(Dispatchers.Main) {
+            recetasList.clear()
+            recetasList.addAll(tempList)
+            recetasListOriginal.clear()
+            recetasListOriginal.addAll(tempList)
+        }
+    }
+    suspend fun eliminarImagenReceta(idReceta: Int): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT imagenRuta FROM Receta WHERE idReceta = ?",
+                arrayOf(idReceta.toString())
+            )
+
+            var rutaImagen: String? = null
+            if (cursor.moveToFirst()) {
+                rutaImagen = cursor.getString(0)
+            }
+            cursor.close()
+
+            if (!rutaImagen.isNullOrEmpty()) {
+                ImageHelper.deleteImage(rutaImagen)
+            }
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+    suspend fun actualizarImagenReceta(idReceta: Int, rutaImagen: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val db = dbHelper.writableDatabase
+                val values = ContentValues().apply {
+                    put("imagenRuta", rutaImagen)
+                }
+
+                val rowsUpdated = db.update(
+                    "Receta",
+                    values,
+                    "idReceta = ?",
+                    arrayOf(idReceta.toString())
+                )
+
+                rowsUpdated > 0
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+    }
 }

@@ -25,6 +25,65 @@
             android:gravity="center"
             android:layout_marginBottom="24dp" />
 
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="@color/AmarilloClaro"
+            app:cardElevation="4dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Foto de la receta"
+                    android:textColor="@color/NaranjaFuerte"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Imagen preview -->
+                <FrameLayout
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:id="@+id/imageViewReceta"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        android:contentDescription="Imagen de la receta" />
+
+                    <TextView
+                        android:id="@+id/textViewNoImagen"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="Sin imagen"
+                        android:gravity="center"
+                        android:textColor="@color/NaranjaFuerte"
+                        android:background="@android:color/white"
+                        android:textSize="14sp" />
+                </FrameLayout>
+
+                <Button
+                    android:id="@+id/buttonAgregarImagen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:text="📷 Agregar Imagen"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Nombre -->
         <TextView
             android:layout_width="wrap_content"
@@ -115,72 +174,72 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="10dp"
-        app:cardBackgroundColor="@color/AmarilloClaro"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            app:cardBackgroundColor="@color/AmarilloClaro"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <EditText
-                    android:id="@+id/editTextIngredienteNombre"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:background="@android:color/white"
-                    android:hint="Nombre"
-                    android:inputType="text"
-                    android:autofillHints="none"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:textSize="14sp"
-                    android:layout_marginEnd="8dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/editTextIngredienteCantidad"
-                    android:layout_width="80dp"
-                    android:layout_height="48dp"
-                    android:background="@android:color/white"
-                    android:hint="Cant."
-                    android:inputType="text"
-                    android:autofillHints="none"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:textSize="14sp"
-                    android:layout_marginEnd="8dp" />
+                    <EditText
+                        android:id="@+id/editTextIngredienteNombre"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Nombre"
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
 
-                <EditText
-                    android:id="@+id/editTextIngredienteUnidad"
-                    android:layout_width="80dp"
+                    <EditText
+                        android:id="@+id/editTextIngredienteCantidad"
+                        android:layout_width="80dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Cant."
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp"
+                        android:layout_marginEnd="8dp" />
+
+                    <EditText
+                        android:id="@+id/editTextIngredienteUnidad"
+                        android:layout_width="80dp"
+                        android:layout_height="48dp"
+                        android:background="@android:color/white"
+                        android:hint="Unidad"
+                        android:inputType="text"
+                        android:autofillHints="none"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/buttonAgregarIngrediente"
+                    android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:background="@android:color/white"
-                    android:hint="Unidad"
-                    android:inputType="text"
-                    android:autofillHints="none"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:textSize="14sp" />
+                    android:text="+ Agregar Ingrediente"
+                    android:backgroundTint="@color/NaranjaFuerte"
+                    android:textColor="@color/white"
+                    android:layout_marginTop="12dp" />
+
             </LinearLayout>
-
-            <Button
-                android:id="@+id/buttonAgregarIngrediente"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="+ Agregar Ingrediente"
-                android:backgroundTint="@color/NaranjaFuerte"
-                android:textColor="@color/white"
-                android:layout_marginTop="12dp" />
-
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Lista de ingredientes -->
         <androidx.recyclerview.widget.RecyclerView

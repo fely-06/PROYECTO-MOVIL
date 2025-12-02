@@ -4,8 +4,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import coil.load // 🆕 Agregar esta importación
 
 class RecetasGAdap(
     private val recetas: List<Receta2>,
@@ -17,6 +19,7 @@ class RecetasGAdap(
         val tvNombre: TextView = itemView.findViewById(R.id.textViewNombrePlatillo)
         val tvTiempo: TextView = itemView.findViewById(R.id.textViewTiempoPreparacion)
         val checkB: CheckBox = itemView.findViewById(R.id.CheckReceta)
+        val imageViewPlatillo: ImageView = itemView.findViewById(R.id.imageViewPlatillo) // 🆕
 
         init {
             itemView.setOnClickListener {
@@ -38,7 +41,6 @@ class RecetasGAdap(
                 }
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecetaViewHolder {
@@ -52,6 +54,16 @@ class RecetasGAdap(
         holder.tvNombre.text = receta.nombre
         holder.tvTiempo.text = "${receta.tiempoPreparacion} min."
         holder.checkB.isChecked = receta.favorita
+        if (!receta.imagenRuta.isNullOrEmpty()) {
+            holder.imageViewPlatillo.load(receta.imagenRuta) {
+                crossfade(true)
+                placeholder(R.drawable.comida)
+                error(R.drawable.comida)
+            }
+        } else {
+            holder.imageViewPlatillo.setImageResource(R.drawable.comida)
+        }
     }
+
     override fun getItemCount() = recetas.size
 }

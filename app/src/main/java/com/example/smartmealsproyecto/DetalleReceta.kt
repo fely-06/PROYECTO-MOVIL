@@ -1,11 +1,18 @@
 package com.example.smartmealsproyecto
 
-import android.app.AlertDialog
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,7 +20,14 @@ import com.example.smartmealsproyecto.databinding.FragmentDetalleRecetaBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-class DetalleRecetaFragment() : Fragment() {
+import androidx.activity.result.contract.ActivityResultContracts
+
+// Asegúrate de que estas clases existen
+// Si no, debes crearlas o ajustar los nombres
+import java.io.File
+
+class DetalleRecetaFragment : Fragment() {
+
     private var _binding: FragmentDetalleRecetaBinding? = null
     private val binding get() = _binding!!
 
@@ -27,6 +41,55 @@ class DetalleRecetaFragment() : Fragment() {
 
     private var onRecetaActualizadaListener: (() -> Unit)? = null
     private var onRecetaEliminadaListener: ((Int) -> Unit)? = null
+    private var currentPhotoUri: Uri? = null
+    private var currentPhotoFile: File? = null
+    private var nuevaImagenRuta: String? = null
+    private var imagenCambiada: Boolean = false
+
+    // Launchers
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            openCamera()
+        } else {
+            Toast.makeText(requireContext(), "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val galleryPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            openGallery()
+        } else {
+            Toast.makeText(requireContext(), "Permiso de galería denegado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && currentPhotoUri != null) {
+            nuevaImagenRuta = currentPhotoFile?.absolutePath
+            imagenCambiada = true
+            displaySelectedImage()
+            Toast.makeText(requireContext(), "Foto capturada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.data?.let { uri ->
+                currentPhotoUri = uri
+                imagenCambiada = true
+                displaySelectedImage()
+                Toast.makeText(requireContext(), "Imagen seleccionada", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     companion object {
         private const val ARG_RECETA_ID = "receta_id"
@@ -52,8 +115,6 @@ class DetalleRecetaFragment() : Fragment() {
         super.onCreate(savedInstanceState)
         arguments?.let {
             recetaId = it.getInt(ARG_RECETA_ID)
-        }
-        arguments?.let {
             Global = it.getBoolean(ARG_GLOBAL)
         }
     }
@@ -75,7 +136,6 @@ class DetalleRecetaFragment() : Fragment() {
         mostrarModoVista()
     }
 
-
     private fun setupIngredientesRecyclerView() {
         ingredientesAdapter = IngredientesAdapter(ingredientesList) { ingrediente ->
             if (modoEdicion) {
@@ -91,31 +151,23 @@ class DetalleRecetaFragment() : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.buttonEditar.setOnClickListener {
-            cambiarModoEdicion()
-        }
-
-        binding.buttonEliminar.setOnClickListener {
-            mostrarDialogoEliminar()
-        }
-
-        binding.buttonAgregarIngrediente.setOnClickListener {
-            agregarIngrediente()
-        }
-
-        binding.buttonGuardar.setOnClickListener {
-            guardarCambios()
-        }
-
+        binding.buttonEditar.setOnClickListener { cambiarModoEdicion() }
+        binding.buttonEliminar.setOnClickListener { mostrarDialogoEliminar() }
+        binding.buttonAgregarIngrediente.setOnClickListener { agregarIngrediente() }
+        binding.buttonGuardar.setOnClickListener { guardarCambios() }
         binding.buttonCancelar.setOnClickListener {
             if (modoEdicion) {
                 cargarRecetaDesdeBD()
                 mostrarModoVista()
             }
         }
-
         binding.buttonVolver.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+        binding.buttonCambiarImagen.setOnClickListener {
+            if (modoEdicion) {
+                showImagePickerDialog()
+            }
         }
     }
 
@@ -136,11 +188,12 @@ class DetalleRecetaFragment() : Fragment() {
         binding.layoutAgregarIngrediente.visibility = View.GONE
         binding.buttonGuardar.visibility = View.GONE
         binding.buttonCancelar.visibility = View.GONE
-        if (Global == true) {
+        binding.buttonCambiarImagen.visibility = View.GONE
+
+        if (Global) {
             binding.buttonEditar.visibility = View.GONE
             binding.buttonEliminar.visibility = View.GONE
-        }
-        if (Global == false) {
+        } else {
             binding.buttonEditar.visibility = View.VISIBLE
             binding.buttonEliminar.visibility = View.VISIBLE
         }
@@ -163,7 +216,7 @@ class DetalleRecetaFragment() : Fragment() {
         binding.buttonEliminar.visibility = View.GONE
         binding.buttonVolver.visibility = View.GONE
         binding.buttonCancelar.visibility = View.VISIBLE
-        binding.buttonCancelar.text = "Cancelar"
+        binding.buttonCambiarImagen.visibility = View.VISIBLE
     }
 
     private fun agregarIngrediente() {
@@ -189,30 +242,27 @@ class DetalleRecetaFragment() : Fragment() {
     }
 
     private fun mostrarDialogoEliminar() {
-        AlertDialog.Builder(requireContext())
+        android.app.AlertDialog.Builder(requireContext())
             .setTitle("Eliminar receta")
             .setMessage("¿Estás seguro de que deseas eliminar esta receta?")
-            .setPositiveButton("Eliminar") { _, _ ->
-                eliminarReceta()
-            }
+            .setPositiveButton("Eliminar") { _, _ -> eliminarReceta() }
             .setNegativeButton("Cancelar", null)
             .show()
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
+    // ✅ SOLO UNA VEZ: guardarCambios() con manejo de imagen
     private fun guardarCambios() {
         val nombre = binding.editTextNombre.text.toString().trim()
         val tiempoStr = binding.editTextTiempo.text.toString().trim()
         val descripcion = binding.editTextDescripcion.text.toString().trim()
 
         if (nombre.isEmpty() || tiempoStr.isEmpty()) {
-            Toast.makeText(requireContext(), "Nombre y tiempo son obligatorios", Toast.LENGTH_SHORT)
-                .show()
+            Toast.makeText(requireContext(), "Nombre y tiempo son obligatorios", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -223,40 +273,58 @@ class DetalleRecetaFragment() : Fragment() {
         }
 
         if (ingredientesList.isEmpty()) {
-            Toast.makeText(
-                requireContext(),
-                "Debe haber al menos un ingrediente",
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast.makeText(requireContext(), "Debe haber al menos un ingrediente", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val recetaActualizada = receta?.copy(
-            nombre = nombre,
-            descripcion = descripcion.ifEmpty { null },
-            tiempoPreparacion = tiempo
-        ) ?: return
-
-        // ✅ Ejecutar en coroutine
         lifecycleScope.launch {
-            val crud = ClaseCRUD(requireContext())
-            val exito = crud.actualizarReceta(recetaActualizada, ingredientesList)
+            try {
+                val crud = ClaseCRUD(requireContext())
 
-            if (exito) {
-                onRecetaActualizadaListener?.invoke()
-                mostrarModoVista()
+                var rutaImagenFinal = receta?.imagenRuta
+
+                if (imagenCambiada) {
+                    if (!receta?.imagenRuta.isNullOrEmpty()) {
+                        ImageHelper.deleteImage(receta?.imagenRuta)
+                    }
+
+                    rutaImagenFinal = if (currentPhotoUri != null) {
+                        ImageHelper.saveImageToInternalStorage(
+                            requireContext(),
+                            currentPhotoUri!!,
+                            recetaId
+                        )
+                    } else {
+                        null
+                    }
+                }
+
+                val recetaActualizada = receta?.copy(
+                    nombre = nombre,
+                    descripcion = descripcion.ifEmpty { null },
+                    tiempoPreparacion = tiempo,
+                    imagenRuta = rutaImagenFinal
+                ) ?: return@launch
+
+                val exito = crud.actualizarReceta(recetaActualizada, ingredientesList)
+
+                if (exito) {
+                    imagenCambiada = false
+                    onRecetaActualizadaListener?.invoke()
+                    mostrarModoVista()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error al guardar: ${e.message}", Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             }
         }
     }
 
-    // Ejemplo en eliminarReceta():
     private fun eliminarReceta() {
         lifecycleScope.launch {
             val crud = ClaseCRUD(requireContext())
             crud.iniciarBD()
-
             val exito = crud.eliminarReceta(recetaId)
-
             if (exito) {
                 onRecetaEliminadaListener?.invoke(recetaId)
                 parentFragmentManager.popBackStack()
@@ -274,11 +342,10 @@ class DetalleRecetaFragment() : Fragment() {
                 crud.iniciarBD()
                 val db = crud.dbHelper.readableDatabase
 
-                // ✅ Query SIN campo favorita en tabla Receta
                 val cursorReceta = db.rawQuery(
                     """
                 SELECT r.idReceta, r.idUsuario, r.nombre, r.descripcion, 
-                       r.tiempoPreparacion, r.esGlobal,
+                       r.tiempoPreparacion, r.esGlobal, r.imagenRuta,
                        CASE WHEN rg.idReceta IS NOT NULL THEN 1 ELSE 0 END AS favorita
                 FROM Receta r
                 LEFT JOIN RecetaGuardada rg 
@@ -296,11 +363,11 @@ class DetalleRecetaFragment() : Fragment() {
                     val descripcion = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("descripcion")) ?: ""
                     val tiempo = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("tiempoPreparacion"))
                     val esGlobal = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("esGlobal")) == 1
+                    val imagenRuta = cursorReceta.getString(cursorReceta.getColumnIndexOrThrow("imagenRuta"))
                     val favorita = cursorReceta.getInt(cursorReceta.getColumnIndexOrThrow("favorita")) == 1
 
-                    recetaCargada = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita)
+                    recetaCargada = Receta2(id, idUsuario, nombre, descripcion, tiempo, esGlobal, favorita, imagenRuta)
 
-                    // Cargar ingredientes
                     val cursorIng = db.rawQuery(
                         "SELECT nombre, cantidad, unidad FROM Ingrediente WHERE idReceta = ?",
                         arrayOf(recetaId.toString())
@@ -321,7 +388,6 @@ class DetalleRecetaFragment() : Fragment() {
                 cursorReceta.close()
             }
 
-            // Actualizar UI
             receta = recetaCargada
             ingredientesList.clear()
             ingredientesList.addAll(ingredientesTemp)
@@ -330,9 +396,106 @@ class DetalleRecetaFragment() : Fragment() {
                 binding.editTextNombre.setText(it.nombre)
                 binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
                 binding.editTextDescripcion.setText(it.descripcion)
+
+                if (!it.imagenRuta.isNullOrEmpty()) {
+                    val bitmap = ImageHelper.loadImageFromPath(it.imagenRuta)
+                    if (bitmap != null) {
+                        binding.imageViewReceta.setImageBitmap(bitmap)
+                        binding.imageViewReceta.visibility = View.VISIBLE
+                        binding.textViewNoImagen.visibility = View.GONE
+                    } else {
+                        binding.imageViewReceta.visibility = View.GONE
+                        binding.textViewNoImagen.visibility = View.VISIBLE
+                    }
+                } else {
+                    binding.imageViewReceta.visibility = View.GONE
+                    binding.textViewNoImagen.visibility = View.VISIBLE
+                }
             }
 
             ingredientesAdapter.notifyDataSetChanged()
         }
+    }
+
+    private fun showImagePickerDialog() {
+        val options = arrayOf("Tomar foto", "Seleccionar de galería", "Eliminar foto")
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Cambiar imagen")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndOpen()
+                    1 -> checkGalleryPermissionAndOpen()
+                    2 -> removeImage()
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermissionAndOpen() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                openCamera()
+            }
+            else -> {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+
+    private fun checkGalleryPermissionAndOpen() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                permission
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                openGallery()
+            }
+            else -> {
+                galleryPermissionLauncher.launch(permission)
+            }
+        }
+    }
+
+    private fun openCamera() {
+        try {
+            currentPhotoFile = ImageHelper.createImageFile(requireContext())
+            currentPhotoUri = ImageHelper.getUriForFile(requireContext(), currentPhotoFile!!)
+            cameraLauncher.launch(currentPhotoUri)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Error al abrir cámara", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        galleryLauncher.launch(intent)
+    }
+
+    private fun displaySelectedImage() {
+        currentPhotoUri?.let { uri ->
+            binding.imageViewReceta.setImageURI(uri)
+            binding.imageViewReceta.visibility = View.VISIBLE
+            binding.textViewNoImagen.visibility = View.GONE
+        }
+    }
+
+    private fun removeImage() {
+        currentPhotoUri = null
+        nuevaImagenRuta = null
+        imagenCambiada = true
+        binding.imageViewReceta.setImageDrawable(null)
+        binding.imageViewReceta.visibility = View.GONE
+        binding.textViewNoImagen.visibility = View.VISIBLE
+        Toast.makeText(requireContext(), "Imagen eliminada", Toast.LENGTH_SHORT).show()
     }
 }

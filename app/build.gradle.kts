@@ -59,7 +59,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.mpandroidchart)
     implementation(libs.kotlinx.coroutines.core)
-
+    implementation(libs.coil)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
     // Lifecycle + Coroutines
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
