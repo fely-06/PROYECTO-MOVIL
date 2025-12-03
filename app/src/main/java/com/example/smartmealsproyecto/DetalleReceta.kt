@@ -21,9 +21,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.activity.result.contract.ActivityResultContracts
-
-// Asegúrate de que estas clases existen
-// Si no, debes crearlas o ajustar los nombres
 import java.io.File
 
 class DetalleRecetaFragment : Fragment() {
@@ -190,14 +187,42 @@ class DetalleRecetaFragment : Fragment() {
         binding.buttonCancelar.visibility = View.GONE
         binding.buttonCambiarImagen.visibility = View.GONE
 
-        if (Global) {
-            binding.buttonEditar.visibility = View.GONE
-            binding.buttonEliminar.visibility = View.GONE
-        } else {
+        // 🆕 LÓGICA DE PERMISOS DE EDICIÓN
+        val puedeEditar = verificarPermisosEdicion()
+
+        if (puedeEditar) {
             binding.buttonEditar.visibility = View.VISIBLE
             binding.buttonEliminar.visibility = View.VISIBLE
+        } else {
+            binding.buttonEditar.visibility = View.GONE
+            binding.buttonEliminar.visibility = View.GONE
         }
+
         binding.buttonVolver.visibility = View.VISIBLE
+    }
+
+    // 🆕 FUNCIÓN PARA VERIFICAR PERMISOS DE EDICIÓN
+    private fun verificarPermisosEdicion(): Boolean {
+        val recetaActual = receta ?: return false
+
+        // Si la receta es global Y NO está guardada como favorita, NO se puede editar
+        if (recetaActual.esGlobal && !recetaActual.favorita) {
+            return false
+        }
+
+        // Si la receta es global pero está guardada como favorita, NO se puede editar
+        // (porque no es tu receta original, solo la tienes guardada)
+        if (recetaActual.esGlobal && recetaActual.favorita) {
+            return false
+        }
+
+        // Si la receta NO es global y el usuario es el creador, SÍ se puede editar
+        if (!recetaActual.esGlobal && recetaActual.idUsuario == ClaseUsuario.iduser) {
+            return true
+        }
+
+        // Por defecto, no permitir edición
+        return false
     }
 
     private fun mostrarModoEdicion() {
@@ -255,7 +280,6 @@ class DetalleRecetaFragment : Fragment() {
         _binding = null
     }
 
-    // ✅ SOLO UNA VEZ: guardarCambios() con manejo de imagen
     private fun guardarCambios() {
         val nombre = binding.editTextNombre.text.toString().trim()
         val tiempoStr = binding.editTextTiempo.text.toString().trim()

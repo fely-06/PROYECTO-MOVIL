@@ -1639,4 +1639,46 @@ class ClaseCRUD(private val context: Context) {
             }
         }
     }
+    suspend fun actualizarFotoPerfilUsuario(rutaImagen: String): Boolean = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val db = dbHelper.writableDatabase
+            val values = ContentValues().apply {
+                put("fotoPerfil", rutaImagen) // Ajusta el nombre de la columna si es diferente
+            }
+
+            val filasActualizadas = db.update(
+                "Usuario",       // Nombre de la tabla
+                values,
+                "idUsuario = ?", // Condición
+                arrayOf(ClaseUsuario.iduser.toString())
+            )
+
+            filasActualizadas > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+    suspend fun obtenerFotoPerfilUsuario(): String? = withContext(Dispatchers.IO) {
+        return@withContext try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.query(
+                "Usuario",
+                arrayOf("fotoPerfil"),
+                "idUsuario = ?",
+                arrayOf(ClaseUsuario.iduser.toString()),
+                null, null, null
+            )
+
+            var ruta: String? = null
+            if (cursor.moveToFirst()) {
+                ruta = cursor.getString(cursor.getColumnIndexOrThrow("fotoPerfil"))
+            }
+            cursor.close()
+            ruta
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 }
