@@ -41,13 +41,19 @@ class Recetas : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = RecetasAdapt(RecetasTotales.misRecetas) { /* no usado aún */ }
+        adapter = RecetasAdapt(RecetasTotales.misRecetas, onRecetaClick = { receta -> abrirDetalleReceta(receta)})
         binding.rec.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@Recetas.adapter
         }
     }
-
+    private fun abrirDetalleReceta(receta: Receta2) {
+        val detalleFragment = DetalleRecetaFragment.newInstance(receta.id, false)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.frame_layout, detalleFragment)
+            .addToBackStack(null)
+            .commit()
+    }
     private fun cargarmisRecetas() {
         lifecycleScope.launch {
             try {
