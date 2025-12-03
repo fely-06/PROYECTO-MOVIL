@@ -33,6 +33,7 @@ class NuevaRecetaFragment : Fragment() {
     private var currentPhotoUri: Uri? = null
     private var currentPhotoFile: File? = null
     private var selectedImagePath: String? = null
+
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -42,6 +43,7 @@ class NuevaRecetaFragment : Fragment() {
             Toast.makeText(requireContext(), "Permiso de cámara denegado", Toast.LENGTH_SHORT).show()
         }
     }
+
     private val galleryPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -140,6 +142,7 @@ class NuevaRecetaFragment : Fragment() {
             }
             .show()
     }
+
     private fun checkCameraPermissionAndOpen() {
         when {
             ContextCompat.checkSelfPermission(
@@ -153,6 +156,7 @@ class NuevaRecetaFragment : Fragment() {
             }
         }
     }
+
     private fun checkGalleryPermissionAndOpen() {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
@@ -172,6 +176,7 @@ class NuevaRecetaFragment : Fragment() {
             }
         }
     }
+
     private fun openCamera() {
         try {
             currentPhotoFile = ImageHelper.createImageFile(requireContext())
@@ -195,6 +200,7 @@ class NuevaRecetaFragment : Fragment() {
             binding.textViewNoImagen.visibility = View.GONE
         }
     }
+
     private fun removeImage() {
         currentPhotoUri = null
         selectedImagePath = null
@@ -226,6 +232,7 @@ class NuevaRecetaFragment : Fragment() {
         val nombre = binding.editTextNombre.text.toString().trim()
         val tiempoStr = binding.editTextTiempo.text.toString().trim()
         val descripcion = binding.editTextDescripcion.text.toString().trim()
+        val esPublica = binding.checkBoxRecetaPublica.isChecked // NUEVO
 
         if (nombre.isEmpty() || tiempoStr.isEmpty() || descripcion.isEmpty()) {
             Toast.makeText(requireContext(), "Completa todos los campos", Toast.LENGTH_SHORT).show()
@@ -254,7 +261,7 @@ class NuevaRecetaFragment : Fragment() {
                     nombre = nombre,
                     descripcion = descripcion,
                     tiempoPreparacion = tiempo,
-                    esGlobal = false,
+                    esGlobal = esPublica, // MODIFICADO: ahora depende del checkbox
                     favorita = false,
                     imagenRuta = null
                 )
@@ -278,6 +285,11 @@ class NuevaRecetaFragment : Fragment() {
                         id = idReceta.toInt(),
                         imagenRuta = rutaImagen
                     )
+
+                    // Si la receta es pública, también guardarla como favorita automáticamente
+                    if (esPublica) {
+                        crud.guardarRecetaGlobal(idReceta.toInt())
+                    }
 
                     onRecetaGuardadaListener?.invoke(recetaGuardada)
                     parentFragmentManager.popBackStack()

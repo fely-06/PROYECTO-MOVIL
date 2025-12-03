@@ -10,3 +10,13 @@ data class Receta2(
     val favorita: Boolean = false,
     val imagenRuta: String? = null
 )
+{ fun puedeEditar(idUsuarioActual: Int): Boolean {
+        // Puede editar si:
+        // 1. Es el creador de la receta
+        // 2. La receta es global Y ya la tiene guardada (favorita)
+        return idUsuario == idUsuarioActual || (esGlobal && favorita)
+    }
+  fun esCreador(idUsuarioActual: Int): Boolean {
+        return idUsuario == idUsuarioActual
+    }
+}

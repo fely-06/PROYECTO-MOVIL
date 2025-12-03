@@ -32,6 +32,7 @@ class DetalleRecetaFragment : Fragment() {
     private var Global: Boolean = false
     private var receta: Receta2? = null
     private var modoEdicion = false
+    private var puedeEditar = false // Nueva variable
 
     private lateinit var ingredientesAdapter: IngredientesAdapter
     private val ingredientesList = mutableListOf<Ingrediente>()
@@ -148,8 +149,30 @@ class DetalleRecetaFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.buttonEditar.setOnClickListener { cambiarModoEdicion() }
-        binding.buttonEliminar.setOnClickListener { mostrarDialogoEliminar() }
+        binding.buttonEditar.setOnClickListener {
+            if (puedeEditar) {
+                cambiarModoEdicion()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "No tienes permisos para editar esta receta",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        binding.buttonEliminar.setOnClickListener {
+            if (puedeEditar) {
+                mostrarDialogoEliminar()
+            } else {
+                Toast.makeText(
+                    requireContext(),
+                    "No tienes permisos para eliminar esta receta",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
         binding.buttonAgregarIngrediente.setOnClickListener { agregarIngrediente() }
         binding.buttonGuardar.setOnClickListener { guardarCambios() }
         binding.buttonCancelar.setOnClickListener {
@@ -187,9 +210,7 @@ class DetalleRecetaFragment : Fragment() {
         binding.buttonCancelar.visibility = View.GONE
         binding.buttonCambiarImagen.visibility = View.GONE
 
-        // 🆕 LÓGICA DE PERMISOS DE EDICIÓN
-        val puedeEditar = verificarPermisosEdicion()
-
+        // Mostrar botones de editar/eliminar solo si tiene permisos
         if (puedeEditar) {
             binding.buttonEditar.visibility = View.VISIBLE
             binding.buttonEliminar.visibility = View.VISIBLE
@@ -199,30 +220,6 @@ class DetalleRecetaFragment : Fragment() {
         }
 
         binding.buttonVolver.visibility = View.VISIBLE
-    }
-
-    // 🆕 FUNCIÓN PARA VERIFICAR PERMISOS DE EDICIÓN
-    private fun verificarPermisosEdicion(): Boolean {
-        val recetaActual = receta ?: return false
-
-        // Si la receta es global Y NO está guardada como favorita, NO se puede editar
-        if (recetaActual.esGlobal && !recetaActual.favorita) {
-            return false
-        }
-
-        // Si la receta es global pero está guardada como favorita, NO se puede editar
-        // (porque no es tu receta original, solo la tienes guardada)
-        if (recetaActual.esGlobal && recetaActual.favorita) {
-            return false
-        }
-
-        // Si la receta NO es global y el usuario es el creador, SÍ se puede editar
-        if (!recetaActual.esGlobal && recetaActual.idUsuario == ClaseUsuario.iduser) {
-            return true
-        }
-
-        // Por defecto, no permitir edición
-        return false
     }
 
     private fun mostrarModoEdicion() {
@@ -416,13 +413,16 @@ class DetalleRecetaFragment : Fragment() {
             ingredientesList.clear()
             ingredientesList.addAll(ingredientesTemp)
 
-            receta?.let {
-                binding.editTextNombre.setText(it.nombre)
-                binding.editTextTiempo.setText(it.tiempoPreparacion.toString())
-                binding.editTextDescripcion.setText(it.descripcion)
+            receta?.let { rec ->
+                // Verificar permisos de edición
+                puedeEditar = rec.puedeEditar(ClaseUsuario.iduser)
 
-                if (!it.imagenRuta.isNullOrEmpty()) {
-                    val bitmap = ImageHelper.loadImageFromPath(it.imagenRuta)
+                binding.editTextNombre.setText(rec.nombre)
+                binding.editTextTiempo.setText(rec.tiempoPreparacion.toString())
+                binding.editTextDescripcion.setText(rec.descripcion)
+
+                if (!rec.imagenRuta.isNullOrEmpty()) {
+                    val bitmap = ImageHelper.loadImageFromPath(rec.imagenRuta)
                     if (bitmap != null) {
                         binding.imageViewReceta.setImageBitmap(bitmap)
                         binding.imageViewReceta.visibility = View.VISIBLE
@@ -438,6 +438,9 @@ class DetalleRecetaFragment : Fragment() {
             }
 
             ingredientesAdapter.notifyDataSetChanged()
+
+            // Actualizar UI según permisos
+            mostrarModoVista()
         }
     }
 

@@ -156,7 +156,19 @@
             android:paddingTop="12dp"
             android:textColor="@color/black"
             android:textColorHint="@color/white"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="16dp" />
+
+        <!-- CheckBox para receta pública -->
+        <CheckBox
+            android:id="@+id/checkBoxRecetaPublica"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hacer esta receta pública"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:buttonTint="@color/amarillo"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/ms" />
 
         <!-- Sección de Ingredientes -->
         <TextView
